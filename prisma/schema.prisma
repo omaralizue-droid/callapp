@@ -1,0 +1,274 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider        = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  QA
+  AGENT
+}
+
+enum CallStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum Sentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+enum NotificationType {
+  CALL_PROCESSED
+  QA_COMPLETED
+  SYSTEM_ALERT
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  supabaseId     String?   @unique // Links to Supabase Auth user ID
+  firstName      String?
+  lastName       String?
+  avatarUrl      String?
+  role           Role      @default(AGENT)
+  
+  // Tenancy relations
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  teamId         String?
+  team           Team?         @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  // Call & QA relations
+  calls          Call[]        @relation("AgentCalls")
+  qaReports      QAReport[]    @relation("ReviewerReports")
+  
+  // Audits & Utilities
+  notifications  Notification[]
+  activityLogs   ActivityLog[]
+  
+  // Soft Delete & Timestamps
+  isDeleted      Boolean   @default(false)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@index([teamId])
+  @@index([email])
+  @@map("users")
+}
+
+model Organization {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  logoUrl   String?
+  
+  // Relations
+  users     User[]
+  teams     Team[]
+  calls     Call[]
+  setting   Setting?
+
+  // Soft Delete & Timestamps
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([slug])
+  @@map("organizations")
+}
+
+model Team {
+  id             String       @id @default(uuid())
+  name           String
+  description    String?
+  
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  users          User[]
+  calls          Call[]
+
+  // Soft Delete & Timestamps
+  isDeleted      Boolean      @default(false)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@map("teams")
+}
+
+model Call {
+  id             String        @id @default(uuid())
+  title          String?
+  filename       String
+  fileUrl        String
+  duration       Float         @default(0.0) // duration in seconds
+  fileSize       Int           @default(0)   // file size in bytes
+  status         CallStatus    @default(PENDING)
+  
+  // Customer Metadata
+  customerId     String?       @map("customer_id")
+  customerName   String?       @map("customer_name")
+  
+  // Relations
+  agentId        String?
+  agent          User?         @relation("AgentCalls", fields: [agentId], references: [id], onDelete: SetNull)
+  teamId         String?
+  team           Team?         @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Analysis, QA and CRM relations
+  analysis       CallAnalysis?
+  qaReports      QAReport[]
+  crmNote        CRMNote?
+
+  // Soft Delete & Timestamps
+  isDeleted      Boolean       @default(false)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@index([agentId])
+  @@index([teamId])
+  @@index([status])
+  @@map("calls")
+}
+
+model CallAnalysis {
+  id               String    @id @default(uuid())
+  callId           String    @unique @map("call_id")
+  call             Call      @relation(fields: [callId], references: [id], onDelete: Cascade)
+  
+  summary          String
+  transcript       Json      // Structure: [{ speaker: string, text: string, start: number, end: number, sentiment: string }]
+  sentimentOverall Sentiment @default(NEUTRAL) @map("sentiment_overall")
+  sentimentScore   Float     @default(0.0) @map("sentiment_score") // Score between -1.0 and 1.0
+  coachingTips     Json      // Structure: string[]
+  strengths        Json      // Structure: string[]
+  improvements     Json      // Structure: string[]
+  aiCoachReport    Json?     @map("ai_coach_report")
+
+  // Soft Delete & Timestamps
+  isDeleted        Boolean   @default(false)
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@map("call_analyses")
+}
+
+model QAReport {
+  id             String    @id @default(uuid())
+  callId         String    @map("call_id")
+  call           Call      @relation(fields: [callId], references: [id], onDelete: Cascade)
+  
+  reviewerId     String?   @map("reviewer_id")
+  reviewer       User?     @relation("ReviewerReports", fields: [reviewerId], references: [id], onDelete: SetNull)
+  
+  score          Int       @default(0) // Scale 0-100
+  checklist      Json      // Structure: { compliance: { score: number, items: [] }, softSkills: { score: number, items: [] } }
+  feedback       String?
+
+  // Soft Delete & Timestamps
+  isDeleted      Boolean   @default(false)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([callId])
+  @@index([reviewerId])
+  @@map("qa_reports")
+}
+
+model CRMNote {
+  id                String    @id @default(uuid())
+  callId            String    @unique @map("call_id")
+  call              Call      @relation(fields: [callId], references: [id], onDelete: Cascade)
+  
+  summary           String
+  keyPoints         Json      // Structure: string[]
+  actionItems       Json      // Structure: string[]
+  
+  // New Structured Fields
+  customerName      String?
+  agentName         String?
+  callPurpose       String?
+  issue             String?
+  resolution        String?
+  followUp          String?
+  productsMentioned Json?     // Structure: string[]
+  callDuration      Float?
+  importantNotes    String?
+  
+  exported          Boolean   @default(false)
+  exportedAt        DateTime? @map("exported_at")
+
+  // Soft Delete & Timestamps
+  isDeleted         Boolean   @default(false)
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@map("crm_notes")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title     String
+  message   String
+  type      NotificationType @default(SYSTEM_ALERT)
+  isRead    Boolean          @default(false) @map("is_read")
+
+  // Soft Delete & Timestamps
+  isDeleted Boolean          @default(false)
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  action    String
+  details   String?
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("activity_logs")
+}
+
+model Setting {
+  id                     String       @id @default(uuid())
+  organizationId         String       @unique @map("organization_id")
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  qaRubric               Json         // Structure of customizable quality guidelines
+  crmIntegrationSettings Json?        // Settings for CRMs like HubSpot, Salesforce
+  notificationsConfig    Json         // Email notification preferences
+
+  // Soft Delete & Timestamps
+  isDeleted              Boolean      @default(false)
+  createdAt              DateTime     @default(now()) @map("created_at")
+  updatedAt              DateTime     @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
