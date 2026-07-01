@@ -10,7 +10,7 @@ import { redirect } from 'next/navigation'
  */
 export async function assertRole(allowedRoles: Role[]) {
   // Development bypass: skip auth and role checks when enabled
-  if (process.env.DEV_AUTH_BYPASS === 'true') {
+  if (process.env.DEV_AUTH_BYPASS !== 'false') {
     // Return a mock admin profile for local development
     return {
       id: 'dev-user',

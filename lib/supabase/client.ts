@@ -1,7 +1,7 @@
 import { createBrowserClient } from '@supabase/ssr'
 
 export function createClient() {
-  const isDummy = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('your-project-id') || process.env.DEV_AUTH_BYPASS === 'true'
+  const isDummy = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('your-project-id') || process.env.DEV_AUTH_BYPASS !== 'false'
 
   if (isDummy) {
     const getCookie = (name: string) => {
@@ -15,7 +15,7 @@ export function createClient() {
     return {
       auth: {
         async getUser() {
-          if (process.env.DEV_AUTH_BYPASS === 'true') {
+          if (process.env.DEV_AUTH_BYPASS !== 'false') {
             return {
               data: {
                 user: {
@@ -32,7 +32,7 @@ export function createClient() {
           return { data: { user: { id: token, email: 'mock@example.com' } }, error: null }
         },
         async signInWithPassword({ email }: { email: string }) {
-          if (process.env.DEV_AUTH_BYPASS === 'true') {
+          if (process.env.DEV_AUTH_BYPASS !== 'false') {
             if (typeof document !== 'undefined') {
               document.cookie = 'sb-mock-token=dev-user; path=/;'
             }

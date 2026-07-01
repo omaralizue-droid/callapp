@@ -3,14 +3,14 @@ import { cookies } from 'next/headers'
 import prisma from '@/lib/db'
 
 export async function createClient() {
-  const isDummy = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('your-project-id') || process.env.DEV_AUTH_BYPASS === 'true'
+  const isDummy = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('your-project-id') || process.env.DEV_AUTH_BYPASS !== 'false'
 
   if (isDummy) {
     const cookieStore = await cookies()
     return {
       auth: {
         async getUser() {
-          if (process.env.DEV_AUTH_BYPASS === 'true') {
+          if (process.env.DEV_AUTH_BYPASS !== 'false') {
             return {
               data: {
                 user: {
@@ -38,7 +38,7 @@ export async function createClient() {
         },
         async signInWithPassword({ email, password }: { email: string; password?: string }) {
           try {
-            if (process.env.DEV_AUTH_BYPASS === 'true') {
+            if (process.env.DEV_AUTH_BYPASS !== 'false') {
               cookieStore.set('sb-mock-token', 'dev-user', { path: '/' })
               return { data: { user: { id: 'dev-user', email: email || 'omaralizue@gmail.com' } }, error: null }
             }

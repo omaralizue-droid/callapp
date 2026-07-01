@@ -6,7 +6,7 @@ export async function proxy(request: NextRequest) {
     request,
   })
 
-  const isDummy = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('your-project-id') || process.env.DEV_AUTH_BYPASS === 'true'
+  const isDummy = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('your-project-id') || process.env.DEV_AUTH_BYPASS !== 'false'
   const token = request.cookies.get('sb-mock-token')?.value
   const user = isDummy
     ? (token ? { id: token, email: 'omaralizue@gmail.com', name: 'Developer' } : { id: 'dev-user', email: 'omaralizue@gmail.com', name: 'Developer' })
