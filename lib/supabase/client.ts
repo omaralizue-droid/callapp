@@ -15,11 +15,29 @@ export function createClient() {
     return {
       auth: {
         async getUser() {
+          if (process.env.DEV_AUTH_BYPASS === 'true') {
+            return {
+              data: {
+                user: {
+                  id: 'dev-user',
+                  email: 'omaralizue@gmail.com',
+                  user_metadata: { name: 'Developer' }
+                }
+              },
+              error: null
+            }
+          }
           const token = getCookie('sb-mock-token')
           if (!token) return { data: { user: null }, error: null }
           return { data: { user: { id: token, email: 'mock@example.com' } }, error: null }
         },
         async signInWithPassword({ email }: { email: string }) {
+          if (process.env.DEV_AUTH_BYPASS === 'true') {
+            if (typeof document !== 'undefined') {
+              document.cookie = 'sb-mock-token=dev-user; path=/;'
+            }
+            return { data: { user: { id: 'dev-user', email } }, error: null }
+          }
           return { data: { user: { id: 'mock-user-id', email } }, error: null }
         },
         async signUp({ email }: { email: string }) {

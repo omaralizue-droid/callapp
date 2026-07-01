@@ -6,10 +6,10 @@ export async function proxy(request: NextRequest) {
     request,
   })
 
-  const isDummy = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('your-project-id')
+  const isDummy = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('your-project-id') || process.env.DEV_AUTH_BYPASS === 'true'
   const token = request.cookies.get('sb-mock-token')?.value
   const user = isDummy
-    ? (token ? { id: token, email: 'dev@example.com', name: 'Developer' } : { id: 'dev-user', email: 'dev@example.com', name: 'Developer' })
+    ? (token ? { id: token, email: 'omaralizue@gmail.com', name: 'Developer' } : { id: 'dev-user', email: 'omaralizue@gmail.com', name: 'Developer' })
     : await (async () => {
         try {
           const supabase = createServerClient(

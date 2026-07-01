@@ -10,6 +10,18 @@ export async function createClient() {
     return {
       auth: {
         async getUser() {
+          if (process.env.DEV_AUTH_BYPASS === 'true') {
+            return {
+              data: {
+                user: {
+                  id: 'dev-user',
+                  email: 'omaralizue@gmail.com',
+                  user_metadata: { name: 'Developer' }
+                }
+              },
+              error: null
+            }
+          }
           const token = cookieStore.get('sb-mock-token')?.value
           if (!token) return { data: { user: null }, error: null }
           try {
@@ -24,8 +36,12 @@ export async function createClient() {
           }
           return { data: { user: null }, error: null }
         },
-        async signInWithPassword({ email }: { email: string }) {
+        async signInWithPassword({ email, password }: { email: string; password?: string }) {
           try {
+            if (process.env.DEV_AUTH_BYPASS === 'true') {
+              cookieStore.set('sb-mock-token', 'dev-user', { path: '/' })
+              return { data: { user: { id: 'dev-user', email: email || 'omaralizue@gmail.com' } }, error: null }
+            }
             const user = await prisma.user.findUnique({
               where: { email }
             })

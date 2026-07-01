@@ -14,8 +14,8 @@ export async function assertRole(allowedRoles: Role[]) {
     // Return a mock admin profile for local development
     return {
       id: 'dev-user',
-      email: 'dev@example.com',
-      role: 'admin' as Role,
+      email: 'omaralizue@gmail.com',
+      role: 'ADMIN' as Role,
       organizationId: null,
       firstName: 'Developer',
       lastName: '',
