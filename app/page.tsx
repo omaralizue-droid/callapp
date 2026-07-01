@@ -130,6 +130,7 @@ export default function Home() {
           <a href="#features" className="hover:text-cyan-500 transition-colors">Features</a>
           <a href="#demo" className="hover:text-cyan-500 transition-colors">Interactive Demo</a>
           <a href="#pricing" className="hover:text-cyan-500 transition-colors">Pricing</a>
+          <Link href="/blog" className="hover:text-cyan-500 transition-colors">Blog</Link>
         </nav>
 
         <div className="flex items-center gap-4">
@@ -355,8 +356,9 @@ export default function Home() {
         </div>
         <p>&copy; {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
         <div className="flex gap-6">
-          <a href="#" className="hover:text-cyan-500">Privacy Policy</a>
-          <a href="#" className="hover:text-cyan-500">Terms of Service</a>
+          <Link href="/blog" className="hover:text-cyan-500">Blog</Link>
+          <Link href="/privacy" className="hover:text-cyan-500">Privacy Policy</Link>
+          <Link href="/terms" className="hover:text-cyan-500">Terms of Service</Link>
         </div>
       </footer>
 
