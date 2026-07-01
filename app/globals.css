@@ -112,6 +112,36 @@
   --ring: 214 75% 76%;
 }
 
+/* ================================
+   GOOGLE DASHBOARD SURFACE VARS
+   (picked up by dashboard pages via inline style)
+   ================================ */
+:root {
+  --g-card: #ffffff;
+  --g-surface: #f8f9fa;
+  --g-border: #dadce0;
+  --g-text: #202124;
+  --g-muted: #5f6368;
+  --g-hover: #f1f3f4;
+  --g-blue: #1a73e8;
+  --g-green: #34a853;
+  --g-red: #ea4335;
+  --g-yellow: #f9ab00;
+}
+
+[data-theme="dark"], .dark {
+  --g-card: #2d2d2d;
+  --g-surface: #252525;
+  --g-border: #3c4043;
+  --g-text: #e8eaed;
+  --g-muted: #9aa0a6;
+  --g-hover: #3c4043;
+  --g-blue: #8ab4f8;
+  --g-green: #81c995;
+  --g-red: #f28b82;
+  --g-yellow: #fdd663;
+}
+
 @layer base {
   * {
     border-color: hsl(var(--border));

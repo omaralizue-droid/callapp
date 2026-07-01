@@ -3,49 +3,49 @@ import { PhoneCall, Award, Smile, AlertTriangle, ChevronRight, Clock, User2 } fr
 import { CallsService } from '@/services/calls'
 import OverviewCharts from '@/components/dashboard/OverviewCharts'
 
-export const revalidate = 0 // Disable cache for live updates
+export const revalidate = 0
 
 export default async function OverviewPage() {
   const analytics = await CallsService.getAnalytics()
   const recentCalls = await CallsService.getCalls(5)
 
-  // Calculations for display
-  const totalCalls = analytics.totalAnalyzed.toLocaleString()
-  const averageQa = `${analytics.averageQa}%`
+  const totalCalls       = analytics.totalAnalyzed.toLocaleString()
+  const averageQa        = `${analytics.averageQa}%`
   const positiveSentiment = `${analytics.sentimentStats.positive}%`
 
+  // Google brand stat cards
   const stats = [
     {
       title: 'Calls Scored',
       value: totalCalls,
       change: '+12% this week',
-      icon: <PhoneCall className="w-4 h-4 text-cyan-400" />,
-      bg: 'bg-cyan-500/5',
-      border: 'border-cyan-500/10',
+      icon: <PhoneCall className="w-5 h-5" />,
+      iconColor: '#1a73e8',
+      iconBg: '#e8f0fe',
     },
     {
       title: 'Average QA Score',
       value: averageQa,
       change: '+1.4% vs last week',
-      icon: <Award className="w-4 h-4 text-indigo-400" />,
-      bg: 'bg-indigo-500/5',
-      border: 'border-indigo-500/10',
+      icon: <Award className="w-5 h-5" />,
+      iconColor: '#34a853',
+      iconBg: '#e6f4ea',
     },
     {
       title: 'Positive Sentiment',
       value: positiveSentiment,
       change: 'Steady brand health',
-      icon: <Smile className="w-4 h-4 text-emerald-400" />,
-      bg: 'bg-emerald-500/5',
-      border: 'border-emerald-500/10',
+      icon: <Smile className="w-5 h-5" />,
+      iconColor: '#f9ab00',
+      iconBg: '#fef7e0',
     },
     {
       title: 'Compliance Alerts',
       value: '2 Urgent',
       change: 'Requires agent coaching',
-      icon: <AlertTriangle className="w-4 h-4 text-amber-400" />,
-      bg: 'bg-amber-500/5',
-      border: 'border-amber-500/10',
+      icon: <AlertTriangle className="w-5 h-5" />,
+      iconColor: '#ea4335',
+      iconBg: '#fce8e6',
     },
   ]
 
@@ -55,172 +55,171 @@ export default async function OverviewPage() {
     return `${min}m ${remaining.toString().padStart(2, '0')}s`
   }
 
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return 'bg-green-500/10 text-green-400 border-green-500/20'
-    if (score >= 80) return 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-    return 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+  const getScoreStyle = (score: number) => {
+    if (score >= 90) return { color: '#34a853', background: '#e6f4ea', border: '1px solid #34a85330' }
+    if (score >= 80) return { color: '#f9ab00', background: '#fef7e0', border: '1px solid #f9ab0030' }
+    return { color: '#ea4335', background: '#fce8e6', border: '1px solid #ea433530' }
   }
 
-  const getSentimentBadge = (sentiment: string) => {
+  const getSentimentStyle = (sentiment: string) => {
     switch (sentiment) {
-      case 'POSITIVE':
-        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-      case 'NEGATIVE':
-        return 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-      default:
-        return 'bg-slate-500/10 text-slate-400 border-slate-500/20'
+      case 'POSITIVE': return { color: '#34a853', background: '#e6f4ea', border: '1px solid #34a85330' }
+      case 'NEGATIVE': return { color: '#ea4335', background: '#fce8e6', border: '1px solid #ea433530' }
+      default:         return { color: '#5f6368', background: '#f1f3f4', border: '1px solid #dadce0' }
     }
   }
 
   return (
     <div className="space-y-6">
-      
-      {/* Overview Stats Cards */}
+
+      {/* Page Title */}
+      <div>
+        <h1 className="text-xl font-semibold" style={{ color: 'var(--g-text, #202124)' }}>Overview</h1>
+        <p className="text-sm mt-1" style={{ color: '#5f6368' }}>Your call center performance at a glance.</p>
+      </div>
+
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, idx) => (
-          <div key={idx} className={`glass rounded-xl p-5 border ${stat.border} ${stat.bg} space-y-3`}>
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+          <div key={idx}
+            className="rounded-2xl border p-5 flex flex-col gap-4 hover:shadow-md transition-all"
+            style={{ background: 'var(--g-card, #ffffff)', borderColor: 'var(--g-border, #dadce0)' }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#5f6368' }}>
                 {stat.title}
               </span>
-              <div className="w-7 h-7 rounded-lg bg-slate-900 border border-white/5 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                style={{ background: stat.iconBg, color: stat.iconColor }}>
                 {stat.icon}
               </div>
             </div>
             <div>
-              <span className="text-2xl font-black text-white block tracking-tight">
-                {stat.value}
-              </span>
-              <span className="text-[10px] text-slate-500 font-medium">
-                {stat.change}
-              </span>
+              <div className="text-2xl font-bold" style={{ color: stat.iconColor }}>{stat.value}</div>
+              <div className="text-xs mt-0.5" style={{ color: '#5f6368' }}>{stat.change}</div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Analytics Charts Component */}
+      {/* Charts */}
       <OverviewCharts qaTrend={analytics.qaTrend} volumeTrend={analytics.volumeTrend} />
 
-      {/* Recent call records table */}
-      <div className="glass rounded-xl border border-white/5 overflow-hidden">
-        
+      {/* Recent Calls Table */}
+      <div className="rounded-2xl border overflow-hidden"
+        style={{ background: 'var(--g-card, #ffffff)', borderColor: 'var(--g-border, #dadce0)' }}
+      >
         {/* Table Header */}
-        <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center flex-wrap gap-4">
+        <div className="px-6 py-4 border-b flex justify-between items-center gap-4"
+          style={{ borderColor: 'var(--g-border, #dadce0)', background: 'var(--g-surface, #f8f9fa)' }}>
           <div>
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Recent Audited Calls</h3>
-            <p className="text-[10px] text-slate-500">Showing the latest voice recordings processed by CallPilot AI</p>
+            <h3 className="text-sm font-semibold" style={{ color: '#202124' }}>Recent Audited Calls</h3>
+            <p className="text-xs mt-0.5" style={{ color: '#5f6368' }}>Latest recordings processed by CallPilot AI</p>
           </div>
-          <Link
-            href="/dashboard/calls"
-            className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 group transition-all"
-          >
-            View History
-            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+          <Link href="/dashboard/calls"
+            className="text-sm font-semibold flex items-center gap-1 transition-colors"
+            style={{ color: '#1a73e8' }}>
+            View all <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
 
-        {/* Table Content */}
-        <div className="overflow-x-auto text-xs">
-          <table className="w-full text-left border-collapse">
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="bg-slate-950/40 text-slate-400 font-bold border-b border-white/5">
-                <th className="px-6 py-3 font-semibold">Call Recording</th>
-                <th className="px-6 py-3 font-semibold">Agent</th>
-                <th className="px-6 py-3 font-semibold">Duration</th>
-                <th className="px-6 py-3 font-semibold">QA Score</th>
-                <th className="px-6 py-3 font-semibold">Sentiment</th>
-                <th className="px-6 py-3 font-semibold">Date</th>
-                <th className="px-6 py-3"></th>
+              <tr style={{ background: 'var(--g-surface, #f8f9fa)', borderBottom: '1px solid var(--g-border, #dadce0)' }}>
+                {['Call Recording', 'Agent', 'Duration', 'QA Score', 'Sentiment', 'Date', ''].map(h => (
+                  <th key={h} className="px-5 py-3 text-xs font-semibold" style={{ color: '#5f6368' }}>{h}</th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody>
               {recentCalls.map((call) => {
                 const qaScore = call.qaReports && call.qaReports.length > 0 ? call.qaReports[0].score : null
                 const overallSentiment = call.analysis ? call.analysis.sentimentOverall : 'NEUTRAL'
-                
+
                 return (
-                  <tr key={call.id} className="hover:bg-white/[0.01] transition-colors">
-                    
-                    {/* Filename & customer */}
-                    <td className="px-6 py-4">
-                      <div className="max-w-[200px] truncate">
-                        <span className="font-bold text-white block truncate hover:text-cyan-400 transition-colors">
+                  <tr key={call.id} className="border-b transition-colors"
+                    style={{ borderColor: 'var(--g-border, #dadce0)' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--g-hover, #f8f9fa)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <td className="px-5 py-4">
+                      <div className="max-w-[200px]">
+                        <div className="font-medium text-sm truncate" style={{ color: '#202124' }}>
                           {call.title || call.filename}
-                        </span>
-                        <span className="text-[10px] text-slate-500 truncate block">
-                          Customer: {call.customerName || 'Unknown'}
-                        </span>
+                        </div>
+                        <div className="text-xs truncate mt-0.5" style={{ color: '#5f6368' }}>
+                          {call.customerName || 'Unknown customer'}
+                        </div>
                       </div>
                     </td>
-
-                    {/* Agent details */}
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-slate-900 border border-white/5 flex items-center justify-center text-[10px]">
-                          <User2 className="w-3.5 h-3.5 text-slate-400" />
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center"
+                          style={{ background: '#e8f0fe', color: '#1a73e8' }}>
+                          <User2 className="w-3.5 h-3.5" />
                         </div>
-                        <span className="font-medium text-slate-300">
+                        <span className="text-sm" style={{ color: '#202124' }}>
                           {call.agent ? `${call.agent.firstName} ${call.agent.lastName}` : 'Unassigned'}
                         </span>
                       </div>
                     </td>
-
-                    {/* Duration */}
-                    <td className="px-6 py-4 text-slate-400 font-mono">
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-slate-500" />
-                        <span>{formatDuration(call.duration)}</span>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-1.5 text-sm font-mono" style={{ color: '#5f6368' }}>
+                        <Clock className="w-3.5 h-3.5" />
+                        {formatDuration(call.duration)}
                       </div>
                     </td>
-
-                    {/* Score */}
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-4">
                       {qaScore !== null ? (
-                        <span className={`px-2 py-0.5 rounded border text-[10px] font-bold ${getScoreColor(qaScore)}`}>
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold"
+                          style={getScoreStyle(qaScore)}>
                           {qaScore}%
                         </span>
                       ) : (
-                        <span className="text-slate-500">Unscored</span>
+                        <span className="text-xs" style={{ color: '#9aa0a6' }}>Unscored</span>
                       )}
                     </td>
-
-                    {/* Sentiment */}
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-0.5 rounded border text-[10px] font-bold ${getSentimentBadge(overallSentiment)}`}>
+                    <td className="px-5 py-4">
+                      <span className="px-2.5 py-1 rounded-full text-xs font-semibold"
+                        style={getSentimentStyle(overallSentiment)}>
                         {overallSentiment}
                       </span>
                     </td>
-
-                    {/* Date */}
-                    <td className="px-6 py-4 text-slate-400 font-mono text-[10px]">
+                    <td className="px-5 py-4 text-xs font-mono" style={{ color: '#5f6368' }}>
                       {new Date(call.createdAt).toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
+                        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
                       })}
                     </td>
-
-                    {/* Action link */}
-                    <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/dashboard/calls/${call.id}`}
-                        className="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white px-3 py-1.5 rounded border border-white/5 transition-all text-[11px] font-bold inline-block"
+                    <td className="px-5 py-4 text-right">
+                      <Link href={`/dashboard/calls/${call.id}`}
+                        className="inline-flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-semibold transition-all"
+                        style={{ background: '#e8f0fe', color: '#1a73e8' }}
                       >
-                        Audit Details
+                        View Details <ChevronRight className="w-3 h-3" />
                       </Link>
                     </td>
-
                   </tr>
                 )
               })}
             </tbody>
           </table>
+
+          {recentCalls.length === 0 && (
+            <div className="text-center py-16">
+              <PhoneCall className="w-10 h-10 mx-auto mb-3" style={{ color: '#dadce0' }} />
+              <p className="text-sm font-medium" style={{ color: '#5f6368' }}>No calls yet</p>
+              <p className="text-xs mt-1" style={{ color: '#9aa0a6' }}>Upload your first call recording to get started.</p>
+              <Link href="/dashboard/upload"
+                className="inline-flex items-center gap-1.5 mt-4 px-5 py-2.5 rounded-full text-sm font-semibold text-white transition-all"
+                style={{ background: '#1a73e8' }}>
+                Upload a call
+              </Link>
+            </div>
+          )}
         </div>
-
       </div>
-
     </div>
   )
 }
