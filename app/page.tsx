@@ -1,6 +1,10 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Sparkles, ShieldCheck, TrendingUp, Cpu, FileSpreadsheet, ArrowRight, Play, Check } from 'lucide-react'
+import { Sparkles, ShieldCheck, TrendingUp, Cpu, FileSpreadsheet, ArrowRight, Play, Check, Sun, Moon } from 'lucide-react'
 import InteractiveDemo from '@/components/landing/InteractiveDemo'
+import LandingHeroAnimation from '@/components/landing/LandingHeroAnimation'
 
 const FEATURES = [
   {
@@ -70,32 +74,78 @@ const PRICING_PLANS = [
 ]
 
 export default function Home() {
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+
+  useEffect(() => {
+    const saved = localStorage.getItem('landing-theme') as 'dark' | 'light'
+    if (saved) setTheme(saved)
+  }, [])
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    setTheme(next)
+    localStorage.setItem('landing-theme', next)
+  }
+
+  const bgClass = theme === 'dark' ? 'bg-[#060813] text-slate-100' : 'bg-slate-50 text-slate-800'
+  const headerClass = theme === 'dark' ? 'bg-slate-950/80 border-white/5' : 'bg-white/80 border-slate-200/60 shadow-sm'
+  const textTitleClass = theme === 'dark' ? 'text-white' : 'text-slate-900'
+  const textDescClass = theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
+  const textMutedClass = theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+  const sectionBorderClass = theme === 'dark' ? 'border-white/5' : 'border-slate-200/60'
+  const statsBgClass = theme === 'dark' ? 'bg-slate-950/40 border-white/5' : 'bg-slate-100/60 border-slate-200/60'
+
   return (
-    <div className="min-h-screen bg-[#060813] text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-slate-950">
+    <div className={`min-h-screen ${bgClass} flex flex-col font-sans selection:bg-cyan-500 selection:text-slate-950 transition-colors duration-300 relative overflow-x-hidden`}>
       
-      {/* Background Decorative Glows */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-1/3 right-1/4 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[150px] pointer-events-none" />
+      {/* Three.js Interactive Hero Constellation Background */}
+      <div className="absolute top-0 left-0 w-full h-[760px] pointer-events-none overflow-hidden z-0">
+        <LandingHeroAnimation theme={theme} />
+        {/* Glow overlays */}
+        {theme === 'dark' ? (
+          <>
+            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute top-1/3 right-1/4 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[150px] pointer-events-none" />
+          </>
+        ) : (
+          <>
+            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-cyan-200/20 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute top-1/3 right-1/4 w-[600px] h-[600px] bg-indigo-200/10 rounded-full blur-[150px] pointer-events-none" />
+          </>
+        )}
+      </div>
 
       {/* Header / Navbar */}
-      <header className="sticky top-0 z-50 glass border-b border-white/5 py-4 px-6 md:px-12 flex items-center justify-between">
+      <header className={`sticky top-0 z-50 glass border-b ${headerClass} py-4 px-6 md:px-12 flex items-center justify-between transition-colors duration-300`}>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
             <Cpu className="w-5 h-5 text-slate-950 stroke-[2.5]" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">
-            CallPilot<span className="text-cyan-400">.AI</span>
+          <span className={`text-xl font-bold tracking-tight ${textTitleClass}`}>
+            CallPilot<span className="text-cyan-500">.AI</span>
           </span>
         </div>
 
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-          <a href="#features" className="hover:text-cyan-400 transition-colors">Features</a>
-          <a href="#demo" className="hover:text-cyan-400 transition-colors">Interactive Demo</a>
-          <a href="#pricing" className="hover:text-cyan-400 transition-colors">Pricing</a>
+        <nav className={`hidden md:flex items-center gap-8 text-sm font-medium ${textDescClass}`}>
+          <a href="#features" className="hover:text-cyan-500 transition-colors">Features</a>
+          <a href="#demo" className="hover:text-cyan-500 transition-colors">Interactive Demo</a>
+          <a href="#pricing" className="hover:text-cyan-500 transition-colors">Pricing</a>
         </nav>
 
         <div className="flex items-center gap-4">
-          <Link href="/login" className="text-sm font-medium hover:text-cyan-400 transition-colors">
+          <button
+            onClick={toggleTheme}
+            className={`p-2 rounded-lg border transition-all cursor-pointer ${
+              theme === 'dark' 
+                ? 'border-white/10 hover:bg-white/5 text-cyan-400' 
+                : 'border-slate-200 hover:bg-slate-100 text-cyan-600'
+            }`}
+            title="Toggle Theme"
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+          
+          <Link href="/login" className={`text-sm font-medium hover:text-cyan-500 transition-colors ${textDescClass}`}>
             Sign In
           </Link>
           <Link
@@ -108,21 +158,21 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <main className="flex-grow">
+      <main className="flex-grow z-10 relative">
         <section className="relative pt-20 pb-16 px-6 md:px-12 max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass border border-white/10 text-xs font-semibold text-cyan-400 mb-8 animate-pulse">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass border ${theme === 'dark' ? 'border-white/10' : 'border-slate-200'} text-xs font-semibold text-cyan-500 mb-8 animate-pulse`}>
+            <Sparkles className="w-3.5 h-3.5 text-cyan-500" />
             Empowering BPO Call Intelligence
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.1] mb-6">
+          <h1 className={`text-4xl md:text-6xl font-extrabold tracking-tight ${textTitleClass} max-w-4xl mx-auto leading-[1.1] mb-6`}>
             Scale QA Scoring and Coaching with{' '}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-indigo-400">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-indigo-500">
               Autonomous AI
             </span>
           </h1>
           
-          <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed mb-10">
+          <p className={`text-lg md:text-xl ${textDescClass} max-w-2xl mx-auto leading-relaxed mb-10`}>
             Upload voice recordings or connect your CRM. CallPilot analyzes compliance, scores quality assurance, flags customer sentiment, and drafts coaching reviews instantly.
           </p>
 
@@ -136,9 +186,9 @@ export default function Home() {
             </Link>
             <a
               href="#demo"
-              className="w-full sm:w-auto glass hover:bg-white/5 font-semibold px-8 py-4 rounded-lg border border-white/10 flex items-center justify-center gap-2 transition-all hover:scale-[1.03]"
+              className={`w-full sm:w-auto glass hover:bg-white/5 font-semibold px-8 py-4 rounded-lg border ${theme === 'dark' ? 'border-white/10' : 'border-slate-200'} flex items-center justify-center gap-2 transition-all hover:scale-[1.03] ${textTitleClass}`}
             >
-              <Play className="w-4 h-4 text-cyan-400 fill-cyan-400" />
+              <Play className="w-4 h-4 text-cyan-500 fill-cyan-500" />
               See Platform Demo
             </a>
           </div>
@@ -151,12 +201,12 @@ export default function Home() {
         </section>
 
         {/* Feature Cards Grid */}
-        <section id="features" className="py-20 px-6 md:px-12 max-w-7xl mx-auto border-t border-white/5">
+        <section id="features" className={`py-20 px-6 md:px-12 max-w-7xl mx-auto border-t ${sectionBorderClass}`}>
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-4">
+            <h2 className={`text-3xl md:text-4xl font-bold tracking-tight ${textTitleClass} mb-4`}>
               Everything you need to automate Call Audits
             </h2>
-            <p className="text-slate-400 leading-relaxed">
+            <p className={`${textMutedClass} leading-relaxed`}>
               Stop manually sampling 1% of calls. Audit 100% of calls instantly, identify performance patterns, and increase agent performance.
             </p>
           </div>
@@ -165,16 +215,22 @@ export default function Home() {
             {FEATURES.map((feat, idx) => (
               <div
                 key={idx}
-                className="glass-card rounded-xl p-6 transition-all duration-300 relative group flex flex-col justify-between"
+                className={`rounded-xl p-6 transition-all duration-300 relative group flex flex-col justify-between border ${
+                  theme === 'dark' 
+                    ? 'bg-slate-950/40 border-white/5' 
+                    : 'bg-white border-slate-200/60 shadow-md shadow-slate-100/60 hover:shadow-lg'
+                }`}
               >
                 <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-lg bg-slate-900 flex items-center justify-center border border-white/5 shadow-inner">
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center border shadow-inner ${
+                    theme === 'dark' ? 'bg-slate-900 border-white/5' : 'bg-slate-50 border-slate-200'
+                  }`}>
                     {feat.icon}
                   </div>
-                  <h3 className="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">
+                  <h3 className={`text-lg font-bold ${textTitleClass} group-hover:text-cyan-500 transition-colors`}>
                     {feat.title}
                   </h3>
-                  <p className="text-slate-400 text-xs leading-relaxed">
+                  <p className={`${textMutedClass} text-xs leading-relaxed`}>
                     {feat.desc}
                   </p>
                 </div>
@@ -184,19 +240,19 @@ export default function Home() {
         </section>
 
         {/* Statistics Callout */}
-        <section className="py-16 bg-slate-950/40 border-y border-white/5">
+        <section className={`py-16 border-y ${statsBgClass} transition-colors duration-300`}>
           <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
             <div>
-              <span className="block text-4xl md:text-5xl font-black text-cyan-400 mb-2">10x</span>
-              <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Increase in Audited Call Volume</span>
+              <span className="block text-4xl md:text-5xl font-black text-cyan-500 mb-2">10x</span>
+              <span className={`text-sm font-semibold uppercase tracking-wider ${textMutedClass}`}>Increase in Audited Call Volume</span>
             </div>
             <div>
-              <span className="block text-4xl md:text-5xl font-black text-indigo-400 mb-2">24%</span>
-              <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Average Compliance QA Score Gain</span>
+              <span className="block text-4xl md:text-5xl font-black text-indigo-500 mb-2">24%</span>
+              <span className={`text-sm font-semibold uppercase tracking-wider ${textMutedClass}`}>Average Compliance QA Score Gain</span>
             </div>
             <div>
-              <span className="block text-4xl md:text-5xl font-black text-cyan-400 mb-2">3.5m</span>
-              <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Hours of BPO Conversations Scored</span>
+              <span className="block text-4xl md:text-5xl font-black text-cyan-500 mb-2">3.5m</span>
+              <span className={`text-sm font-semibold uppercase tracking-wider ${textMutedClass}`}>Hours of BPO Conversations Scored</span>
             </div>
           </div>
         </section>
@@ -204,10 +260,10 @@ export default function Home() {
         {/* Pricing Cards */}
         <section id="pricing" className="py-20 px-6 md:px-12 max-w-7xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-4">
+            <h2 className={`text-3xl md:text-4xl font-bold tracking-tight ${textTitleClass} mb-4`}>
               Flexible Plans for Every Call Center
             </h2>
-            <p className="text-slate-400 leading-relaxed">
+            <p className={`${textMutedClass} leading-relaxed`}>
               Choose the scope that matches your seat count. All plans feature unified user settings and API integrations.
             </p>
           </div>
@@ -216,10 +272,14 @@ export default function Home() {
             {PRICING_PLANS.map((plan, idx) => (
               <div
                 key={idx}
-                className={`rounded-xl p-8 flex flex-col justify-between relative transition-all duration-300 ${
+                className={`rounded-xl p-8 flex flex-col justify-between relative transition-all duration-300 border ${
                   plan.isPopular
-                    ? 'bg-slate-900/90 border-2 border-cyan-500 shadow-xl shadow-cyan-950/30'
-                    : 'glass border border-white/5 hover:border-white/10'
+                    ? theme === 'dark'
+                      ? 'bg-slate-900/90 border-cyan-500 shadow-xl shadow-cyan-950/30'
+                      : 'bg-white border-cyan-500 shadow-xl shadow-cyan-100'
+                    : theme === 'dark'
+                      ? 'bg-slate-950/40 border-white/5 hover:border-white/10'
+                      : 'bg-white border-slate-200/60 shadow-md shadow-slate-100'
                 }`}
               >
                 {plan.isPopular && (
@@ -229,18 +289,18 @@ export default function Home() {
                 )}
                 
                 <div>
-                  <h3 className="text-lg font-bold text-white mb-2">{plan.name}</h3>
-                  <p className="text-slate-400 text-xs mb-6 leading-relaxed">{plan.desc}</p>
+                  <h3 className={`text-lg font-bold ${textTitleClass} mb-2`}>{plan.name}</h3>
+                  <p className={`${textMutedClass} text-xs mb-6 leading-relaxed`}>{plan.desc}</p>
                   
                   <div className="flex items-baseline gap-1 mb-8">
-                    <span className="text-4xl font-black text-white">{plan.price}</span>
-                    <span className="text-slate-400 text-sm font-semibold">{plan.unit}</span>
+                    <span className={`text-4xl font-black ${textTitleClass}`}>{plan.price}</span>
+                    <span className={`${textMutedClass} text-sm font-semibold`}>{plan.unit}</span>
                   </div>
 
                   <ul className="space-y-4 mb-8">
                     {plan.features.map((feat, fidx) => (
-                      <li key={fidx} className="flex items-start gap-2.5 text-xs text-slate-300">
-                        <Check className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                      <li key={fidx} className={`flex items-start gap-2.5 text-xs ${textDescClass}`}>
+                        <Check className="w-4 h-4 text-cyan-500 shrink-0 mt-0.5" />
                         <span>{feat}</span>
                       </li>
                     ))}
@@ -252,7 +312,9 @@ export default function Home() {
                   className={`w-full text-center py-3 rounded-lg font-bold text-xs transition-all ${
                     plan.isPopular
                       ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20'
-                      : 'bg-white/10 hover:bg-white/15 text-white'
+                      : theme === 'dark'
+                        ? 'bg-white/10 hover:bg-white/15 text-white'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
                   }`}
                 >
                   {plan.cta}
@@ -263,12 +325,14 @@ export default function Home() {
         </section>
 
         {/* Call to Action Footer */}
-        <section className="relative py-24 px-6 text-center max-w-5xl mx-auto mb-12 border border-white/5 rounded-2xl overflow-hidden bg-slate-950/40">
+        <section className={`relative py-24 px-6 text-center max-w-5xl mx-auto mb-12 border rounded-2xl overflow-hidden ${
+          theme === 'dark' ? 'bg-slate-950/40 border-white/5' : 'bg-white border-slate-200 shadow-xl shadow-slate-100'
+        }`}>
           <div className="absolute inset-0 bg-radial-gradient from-cyan-500/5 to-transparent blur-3xl pointer-events-none" />
-          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-4">
+          <h2 className={`text-3xl md:text-5xl font-black ${textTitleClass} tracking-tight mb-4`}>
             Ready to upgrade your call intelligence?
           </h2>
-          <p className="text-slate-400 max-w-xl mx-auto leading-relaxed mb-8 text-sm">
+          <p className={`${textMutedClass} max-w-xl mx-auto leading-relaxed mb-8 text-sm`}>
             Sign up in less than 2 minutes. No credit card required to pilot our analysis dashboard and integrate call summaries.
           </p>
           <Link
@@ -282,17 +346,17 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-8 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+      <footer className={`border-t ${sectionBorderClass} py-8 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${textMutedClass} z-10 relative`}>
         <div className="flex items-center gap-2">
           <div className="w-5 h-5 rounded bg-gradient-to-tr from-cyan-400 to-indigo-500 flex items-center justify-center">
             <Cpu className="w-3 h-3 text-slate-950" />
           </div>
-          <span className="font-semibold text-slate-400">CallPilot AI</span>
+          <span className={`font-semibold ${textDescClass}`}>CallPilot AI</span>
         </div>
         <p>&copy; {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
         <div className="flex gap-6">
-          <a href="#" className="hover:text-slate-400">Privacy Policy</a>
-          <a href="#" className="hover:text-slate-400">Terms of Service</a>
+          <a href="#" className="hover:text-cyan-500">Privacy Policy</a>
+          <a href="#" className="hover:text-cyan-500">Terms of Service</a>
         </div>
       </footer>
 
