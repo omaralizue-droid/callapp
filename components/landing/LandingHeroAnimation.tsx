@@ -31,14 +31,21 @@ export default function LandingHeroAnimation({ theme }: LandingHeroAnimationProp
     container.appendChild(renderer.domElement)
 
     // Colors matching the active theme
-    const dotColor = theme === 'dark' ? new THREE.Color('#22d3ee') : new THREE.Color('#0891b2')
-    const connectionColor = theme === 'dark' ? new THREE.Color('#6366f1') : new THREE.Color('#4f46e5')
+    const connectionColor = theme === 'dark' ? new THREE.Color('#4285F4') : new THREE.Color('#1a73e8')
 
     // Create particles
     const particleCount = 280
     const geometry = new THREE.BufferGeometry()
     const positions = new Float32Array(particleCount * 3)
     const velocities = new Float32Array(particleCount * 3)
+    const colors = new Float32Array(particleCount * 3)
+
+    const googleColors = [
+      new THREE.Color('#4285F4'), // Google Blue
+      new THREE.Color('#EA4335'), // Google Red
+      new THREE.Color('#FBBC05'), // Google Yellow
+      new THREE.Color('#34A853')  // Google Green
+    ]
 
     for (let i = 0; i < particleCount; i++) {
       // Spread particles in a 3D box
@@ -50,16 +57,22 @@ export default function LandingHeroAnimation({ theme }: LandingHeroAnimationProp
       velocities[i * 3] = (Math.random() - 0.5) * 0.02
       velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.02
       velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.02
+
+      const randColor = googleColors[Math.floor(Math.random() * googleColors.length)]
+      colors[i * 3] = randColor.r
+      colors[i * 3 + 1] = randColor.g
+      colors[i * 3 + 2] = randColor.b
     }
 
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
 
     // Material
     const pointsMaterial = new THREE.PointsMaterial({
-      size: 0.15,
-      color: dotColor,
+      size: 0.16,
+      vertexColors: true,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.8,
       blending: THREE.AdditiveBlending,
     })
 
