@@ -35,111 +35,65 @@
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
-  --font-sans: "Google Sans", "Inter", "Roboto", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* ================================
-   GOOGLE BRAND COLOR TOKENS
-   ================================ */
-
-/* Default = Light (Google's standard) */
+/* =======================================
+   PREMIUM LIGHT-ONLY SAAS DESIGN SYSTEM
+   ======================================= */
 :root {
-  /* Google White Surface System */
-  --background: 0 0% 100%;           /* #ffffff */
-  --foreground: 220 9% 13%;          /* #202124 */
-  --card: 210 17% 98%;               /* #f8f9fa */
-  --card-foreground: 220 9% 13%;
+  --background: 0 0% 100%;             /* #ffffff - Pure White */
+  --foreground: 224 71% 4%;           /* #020617 - Very Dark Blue-Grey */
+  
+  --card: 0 0% 100%;                  /* #ffffff - Card background */
+  --card-foreground: 224 71% 4%;
+  
   --popover: 0 0% 100%;
-  --popover-foreground: 220 9% 13%;
+  --popover-foreground: 224 71% 4%;
 
-  /* Google Blue (Primary) */
-  --primary: 214 89% 51%;            /* #1a73e8 */
-  --primary-foreground: 0 0% 100%;   /* white text on blue */
+  --primary: 243 75% 59%;             /* #4f46e5 - Modern SaaS Indigo */
+  --primary-foreground: 0 0% 100%;    /* #ffffff */
 
-  /* Google Green (Secondary) */
-  --secondary: 137 72% 37%;          /* #34a853 */
-  --secondary-foreground: 0 0% 100%;
+  --secondary: 243 75% 96%;           /* #eef2ff - Soft light indigo */
+  --secondary-foreground: 243 75% 59%;
 
-  /* Muted — Google's #f1f3f4 surface */
-  --muted: 210 17% 95%;
-  --muted-foreground: 215 14% 40%;   /* #5f6368 */
+  --muted: 210 40% 98%;               /* #f8fafc - Light slate */
+  --muted-foreground: 215 16% 47%;    /* #64748b - Slate-500 */
 
-  /* Accent — light blue surface #e8f0fe */
-  --accent: 219 88% 96%;
-  --accent-foreground: 214 89% 44%;
+  --accent: 210 40% 96%;              /* #f1f5f9 - Light Slate */
+  --accent-foreground: 224 71% 4%;
 
-  /* Google Red (Destructive) */
-  --destructive: 4 90% 58%;          /* #ea4335 */
+  --destructive: 0 84.2% 60.2%;       /* #ef4444 - Standard Red */
   --destructive-foreground: 0 0% 100%;
 
-  /* Google Border */
-  --border: 216 12% 86%;             /* #dadce0 */
-  --input: 216 12% 86%;
-  --ring: 214 89% 51%;
+  --border: 220 13% 91%;              /* #e2e8f0 - Soft slate border */
+  --input: 220 13% 91%;
+  --ring: 243 75% 59%;
 
   --radius: 0.5rem;
 }
 
-/* Dark Theme — Google's Dark Surface System */
+/* Force light mode variables under all scenarios */
 .dark, [data-theme="dark"] {
-  --background: 220 8% 12%;          /* #1e1e1e */
-  --foreground: 213 27% 91%;         /* #e8eaed */
-  --card: 220 8% 18%;                /* #2d2d2d */
-  --card-foreground: 213 27% 91%;
-  --popover: 220 8% 18%;
-  --popover-foreground: 213 27% 91%;
-
-  /* Google Blue (dark) */
-  --primary: 214 75% 76%;            /* #8ab4f8 */
-  --primary-foreground: 220 9% 13%;  /* dark text on light blue */
-
-  /* Google Green (dark) */
-  --secondary: 140 44% 65%;          /* #81c995 */
-  --secondary-foreground: 220 9% 13%;
-
-  --muted: 220 8% 22%;
-  --muted-foreground: 215 10% 62%;   /* #9aa0a6 */
-
-  --accent: 214 56% 26%;
-  --accent-foreground: 214 75% 76%;
-
-  /* Google Red (dark) */
-  --destructive: 4 84% 73%;          /* #f28b82 */
-  --destructive-foreground: 220 9% 13%;
-
-  --border: 215 8% 24%;              /* #3c4043 */
-  --input: 215 8% 24%;
-  --ring: 214 75% 76%;
-}
-
-/* ================================
-   GOOGLE DASHBOARD SURFACE VARS
-   (picked up by dashboard pages via inline style)
-   ================================ */
-:root {
-  --g-card: #ffffff;
-  --g-surface: #f8f9fa;
-  --g-border: #dadce0;
-  --g-text: #202124;
-  --g-muted: #5f6368;
-  --g-hover: #f1f3f4;
-  --g-blue: #1a73e8;
-  --g-green: #34a853;
-  --g-red: #ea4335;
-  --g-yellow: #f9ab00;
-}
-
-[data-theme="dark"], .dark {
-  --g-card: #2d2d2d;
-  --g-surface: #252525;
-  --g-border: #3c4043;
-  --g-text: #e8eaed;
-  --g-muted: #9aa0a6;
-  --g-hover: #3c4043;
-  --g-blue: #8ab4f8;
-  --g-green: #81c995;
-  --g-red: #f28b82;
-  --g-yellow: #fdd663;
+  --background: 0 0% 100%;
+  --foreground: 224 71% 4%;
+  --card: 0 0% 100%;
+  --card-foreground: 224 71% 4%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 71% 4%;
+  --primary: 243 75% 59%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 243 75% 96%;
+  --secondary-foreground: 243 75% 59%;
+  --muted: 210 40% 98%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 224 71% 4%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 243 75% 59%;
 }
 
 @layer base {
@@ -156,111 +110,73 @@
   }
 }
 
-/* ================================
-   GOOGLE COMPONENT CLASSES
-   ================================ */
+/* =======================================
+   MINIMALIST UTILITY STYLES
+   ======================================= */
 
-/* Google-style elevated card */
-.g-card {
+/* Simple, clean bordered card with soft shadow */
+.saas-card {
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
-  transition: box-shadow 0.2s ease;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.g-card:hover {
-  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
+.saas-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Google primary filled button */
-.g-btn-primary {
+/* Simple solid indigo primary button */
+.saas-btn-primary {
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.875rem;
-  padding: 0.625rem 1.5rem;
-  border-radius: 100px;
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
   border: none;
   cursor: pointer;
-  transition: background 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  transition: background-color 0.15s ease;
 }
-.g-btn-primary:hover {
-  filter: brightness(1.08);
-  box-shadow: 0 2px 6px rgba(26, 115, 232, 0.4);
+.saas-btn-primary:hover {
+  background: #4338ca;
 }
 
-/* Google outlined button */
-.g-btn-outlined {
+/* Simple light bordered button */
+.saas-btn-secondary {
   background: transparent;
-  color: hsl(var(--primary));
-  font-weight: 600;
+  color: hsl(var(--foreground));
+  font-weight: 500;
   font-size: 0.875rem;
-  padding: 0.625rem 1.5rem;
-  border-radius: 100px;
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
   border: 1px solid hsl(var(--border));
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
-.g-btn-outlined:hover {
-  background: hsl(var(--accent));
-}
-
-/* Google surface badge */
-.g-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 100px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
+.saas-btn-secondary:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
 }
 
-/* Google nav link */
-.g-nav-link {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: hsl(var(--muted-foreground));
-  padding: 0.25rem 0;
-  position: relative;
-  transition: color 0.15s;
+/* Custom Scrollbar for Light Theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
-.g-nav-link:hover {
-  color: hsl(var(--primary));
+::-webkit-scrollbar-track {
+  background: #f9fafb;
 }
-.g-nav-link.active {
-  color: hsl(var(--primary));
-  font-weight: 600;
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 9999px;
 }
-
-/* Divider */
-.g-divider {
-  height: 1px;
-  background: hsl(var(--border));
-  width: 100%;
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
 
-/* Google icon badge colors */
-.g-icon-blue   { color: #1a73e8; background: #e8f0fe; }
-.g-icon-red    { color: #ea4335; background: #fce8e6; }
-.g-icon-yellow { color: #f9ab00; background: #fef7e0; }
-.g-icon-green  { color: #34a853; background: #e6f4ea; }
-
-.dark .g-icon-blue   { color: #8ab4f8; background: rgba(138, 180, 248, 0.12); }
-.dark .g-icon-red    { color: #f28b82; background: rgba(242, 139, 130, 0.12); }
-.dark .g-icon-yellow { color: #fdd663; background: rgba(253, 214, 99, 0.12); }
-.dark .g-icon-green  { color: #81c995; background: rgba(129, 201, 149, 0.12); }
-
-/* Custom Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: hsl(var(--background)); }
-::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
-
-/* Keyframes */
+/* Keyframes & Animations */
 @keyframes accordion-down {
   from { height: 0; }
   to { height: var(--radix-accordion-content-height); }
@@ -269,14 +185,12 @@
   from { height: var(--radix-accordion-content-height); }
   to { height: 0; }
 }
-@keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+
 @keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fade-in-up { animation: fade-in-up 0.5s ease both; }
-.animate-fade-in    { animation: fade-in 0.4s ease both; }
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}

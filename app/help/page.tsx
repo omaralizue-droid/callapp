@@ -15,82 +15,59 @@ const FAQS = [
 ]
 
 const CATEGORIES = [
-  { icon: <Zap className="w-5 h-5" />,           color: 'g-icon-blue',   label: 'Getting started' },
-  { icon: <BookOpen className="w-5 h-5" />,       color: 'g-icon-green',  label: 'Billing & plans' },
-  { icon: <MessageCircle className="w-5 h-5" />,  color: 'g-icon-red',    label: 'Technical issues' },
+  { icon: <Zap className="w-5 h-5 text-indigo-600" />,           color: 'bg-indigo-50',   label: 'Getting started' },
+  { icon: <BookOpen className="w-5 h-5 text-indigo-600" />,       color: 'bg-indigo-50',  label: 'Billing & plans' },
+  { icon: <MessageCircle className="w-5 h-5 text-indigo-600" />,  color: 'bg-indigo-50',    label: 'Technical issues' },
 ]
 
 export default function HelpPage() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('light')
   const [open, setOpen] = useState<number | null>(null)
 
-  useEffect(() => {
-    const saved = localStorage.getItem('landing-theme') as 'dark' | 'light'
-    if (saved) setTheme(saved)
-  }, [])
-
-  const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark'
-    setTheme(next)
-    localStorage.setItem('landing-theme', next)
-  }
-
-  const isDark  = theme === 'dark'
-  const bg      = isDark ? 'bg-[#1e1e1e]' : 'bg-white'
-  const fg      = isDark ? 'text-[#e8eaed]' : 'text-[#202124]'
-  const muted   = isDark ? 'text-[#9aa0a6]' : 'text-[#5f6368]'
-  const border  = isDark ? 'border-[#3c4043]' : 'border-[#dadce0]'
-  const cardBg  = isDark ? 'bg-[#2d2d2d] border-[#3c4043]' : 'bg-white border-[#dadce0]'
-  const surface = isDark ? 'bg-[#252525]' : 'bg-[#f8f9fa]'
-  const primary = isDark ? '#8ab4f8' : '#1a73e8'
-
   return (
-    <div className={`min-h-screen ${bg} ${fg} flex flex-col font-sans transition-colors duration-200`}
-      data-theme={isDark ? 'dark' : undefined}
-    >
-      <GoogleNav theme={theme} toggleTheme={toggleTheme} />
+    <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans transition-colors duration-200">
+      <GoogleNav />
 
-      <section className={`py-20 px-6 text-center ${surface}`}>
+      <section className="py-20 px-6 text-center bg-slate-50/50 border-b border-slate-100">
         <div className="max-w-3xl mx-auto">
-          <p className="text-sm font-semibold mb-3" style={{ color: primary }}>Help Center</p>
-          <h1 className={`text-4xl md:text-5xl font-bold mb-5 ${fg}`}>How can we help?</h1>
-          <p className={`text-lg ${muted}`}>Find answers to common questions or contact our support team.</p>
+          <p className="text-sm font-semibold text-indigo-600 mb-3 uppercase tracking-wide">Help Center</p>
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-5 text-slate-900 leading-tight">How can we help?</h1>
+          <p className="text-lg text-slate-600">Find answers to common questions or contact our support team.</p>
         </div>
       </section>
 
       {/* Category cards */}
-      <section className="py-14 px-6">
+      <section className="py-14 px-6 bg-white">
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-5">
           {CATEGORIES.map((cat, idx) => (
-            <div key={idx} className={`p-6 rounded-2xl border text-center hover:shadow-md transition-all cursor-pointer ${cardBg}`}>
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4 ${cat.color}`}>
+            <div key={idx} className="p-6 rounded-xl border border-slate-200 bg-white text-center hover:border-slate-300 transition-all hover:shadow-sm cursor-pointer">
+              <div className={`w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4 ${cat.color}`}>
                 {cat.icon}
               </div>
-              <h3 className={`text-sm font-semibold ${fg}`}>{cat.label}</h3>
+              <h3 className="text-sm font-bold text-slate-800">{cat.label}</h3>
             </div>
           ))}
         </div>
       </section>
 
       {/* FAQ Accordion */}
-      <section className={`py-16 px-6 ${surface}`}>
+      <section className="py-20 px-6 bg-slate-50/50 border-t border-b border-slate-100">
         <div className="max-w-3xl mx-auto">
-          <h2 className={`text-3xl font-bold mb-10 ${fg}`}>Frequently asked questions</h2>
+          <h2 className="text-3xl font-extrabold mb-10 text-slate-900 text-center">Frequently asked questions</h2>
           <div className="space-y-3">
             {FAQS.map((faq, idx) => (
               <div key={idx}
-                className={`rounded-2xl border overflow-hidden ${cardBg}`}
+                className="rounded-xl border border-slate-200 overflow-hidden bg-white hover:border-slate-300 transition-all"
               >
                 <button
                   onClick={() => setOpen(open === idx ? null : idx)}
-                  className={`w-full text-left px-6 py-5 flex items-center justify-between gap-4 transition-colors ${fg}`}
+                  className="w-full text-left px-6 py-5 flex items-center justify-between gap-4 transition-colors text-slate-800"
                 >
-                  <span className="text-sm font-semibold">{faq.q}</span>
-                  <span className={`text-lg leading-none transition-transform ${open === idx ? 'rotate-45' : ''}`}
-                    style={{ color: primary }}>+</span>
+                  <span className="text-sm font-bold">{faq.q}</span>
+                  <span className="text-lg leading-none transition-transform font-bold text-indigo-600"
+                    style={{ transform: open === idx ? 'rotate(45deg)' : 'none' }}>+</span>
                 </button>
                 {open === idx && (
-                  <div className={`px-6 pb-5 text-sm leading-relaxed ${muted}`}>{faq.a}</div>
+                  <div className="px-6 pb-5 text-sm leading-relaxed text-slate-600 border-t border-slate-50 pt-3">{faq.a}</div>
                 )}
               </div>
             ))}
@@ -98,27 +75,24 @@ export default function HelpPage() {
         </div>
       </section>
 
-      {/* Still need help */}
-      <section className="py-16 px-6">
-        <div className="max-w-3xl mx-auto text-center rounded-2xl p-12"
-          style={{ background: isDark ? 'linear-gradient(135deg, #1a3a5c, #1e2d1e)' : 'linear-gradient(135deg, #1a73e8, #0d652d)' }}
-        >
-          <h2 className="text-2xl font-bold text-white mb-3">Still need help?</h2>
-          <p className="text-white/80 text-sm mb-6">Our support team responds within 1 business day.</p>
+      {/* Support footer block */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-3xl mx-auto text-center rounded-2xl p-12 bg-indigo-600 shadow-lg shadow-indigo-600/10">
+          <h2 className="text-2xl font-extrabold text-white mb-3">Still need help?</h2>
+          <p className="text-indigo-100 text-sm mb-6">Our support team responds within 1 business day.</p>
           <Link href="/contact"
-            className="inline-flex items-center gap-2 bg-white font-semibold text-sm px-7 py-3 rounded-full hover:shadow-lg transition-all"
-            style={{ color: '#1a73e8' }}
+            className="inline-flex items-center gap-2 bg-white font-bold text-sm px-7 py-3 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors shadow-sm"
           >
             Contact support <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </section>
 
-      <footer className={`border-t py-8 px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${muted} ${border}`}>
+      <footer className="border-t border-slate-100 py-10 px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500 bg-slate-50/50">
         <p>© {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
         <div className="flex gap-6">
-          <Link href="/privacy" className="hover:underline">Privacy</Link>
-          <Link href="/terms" className="hover:underline">Terms</Link>
+          <Link href="/privacy" className="hover:text-indigo-600 transition-colors">Privacy</Link>
+          <Link href="/terms" className="hover:text-indigo-600 transition-colors">Terms</Link>
         </div>
       </footer>
     </div>

@@ -30,8 +30,8 @@ export default function LandingHeroAnimation({ theme }: LandingHeroAnimationProp
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     container.appendChild(renderer.domElement)
 
-    // Colors matching the active theme
-    const connectionColor = theme === 'dark' ? new THREE.Color('#4285F4') : new THREE.Color('#1a73e8')
+    // Colors matching the active light theme
+    const connectionColor = new THREE.Color('#cbd5e1')
 
     // Create particles
     const particleCount = 280
@@ -40,11 +40,12 @@ export default function LandingHeroAnimation({ theme }: LandingHeroAnimationProp
     const velocities = new Float32Array(particleCount * 3)
     const colors = new Float32Array(particleCount * 3)
 
-    const googleColors = [
-      new THREE.Color('#4285F4'), // Google Blue
-      new THREE.Color('#EA4335'), // Google Red
-      new THREE.Color('#FBBC05'), // Google Yellow
-      new THREE.Color('#34A853')  // Google Green
+    const lightColors = [
+      new THREE.Color('#4f46e5'), // Indigo
+      new THREE.Color('#818cf8'), // Light Indigo
+      new THREE.Color('#a5b4fc'), // Soft Indigo
+      new THREE.Color('#94a3b8'), // Slate
+      new THREE.Color('#cbd5e1')  // Light Slate
     ]
 
     for (let i = 0; i < particleCount; i++) {
@@ -58,7 +59,7 @@ export default function LandingHeroAnimation({ theme }: LandingHeroAnimationProp
       velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.02
       velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.02
 
-      const randColor = googleColors[Math.floor(Math.random() * googleColors.length)]
+      const randColor = lightColors[Math.floor(Math.random() * lightColors.length)]
       colors[i * 3] = randColor.r
       colors[i * 3 + 1] = randColor.g
       colors[i * 3 + 2] = randColor.b
@@ -72,19 +73,17 @@ export default function LandingHeroAnimation({ theme }: LandingHeroAnimationProp
       size: 0.16,
       vertexColors: true,
       transparent: true,
-      opacity: 0.8,
-      blending: THREE.AdditiveBlending,
+      opacity: 0.5,
     })
 
     const particleSystem = new THREE.Points(geometry, pointsMaterial)
     scene.add(particleSystem)
 
-    // Create line connection lines - lower opacity for clean Google look
+    // Create line connection lines - lower opacity for clean look
     const lineMaterial = new THREE.LineBasicMaterial({
       color: connectionColor,
       transparent: true,
-      opacity: theme === 'dark' ? 0.12 : 0.08,
-      blending: THREE.AdditiveBlending,
+      opacity: 0.1,
     })
 
     let lineGeometry = new THREE.BufferGeometry()
