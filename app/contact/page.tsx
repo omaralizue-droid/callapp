@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Cpu, Sun, Moon, Check, Mail, Phone, MapPin } from 'lucide-react'
+import { Mail, Phone, MapPin, ArrowRight } from 'lucide-react'
+import GoogleNav from '@/components/landing/GoogleNav'
 
 export default function ContactPage() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [theme, setTheme] = useState<'dark' | 'light'>('light')
   const [submitted, setSubmitted] = useState(false)
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [msg, setMsg] = useState('')
+  const [form, setForm] = useState({ name: '', email: '', company: '', message: '' })
 
   useEffect(() => {
     const saved = localStorage.getItem('landing-theme') as 'dark' | 'light'
@@ -22,196 +21,129 @@ export default function ContactPage() {
     localStorage.setItem('landing-theme', next)
   }
 
-  const bgClass = theme === 'dark' ? 'bg-[#060813] text-slate-100' : 'bg-slate-50 text-slate-800'
-  const headerClass = theme === 'dark' ? 'bg-slate-950/80 border-white/5' : 'bg-white/80 border-slate-200/60 shadow-sm'
-  const textTitleClass = theme === 'dark' ? 'text-white' : 'text-slate-900'
-  const textDescClass = theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
-  const textMutedClass = theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
-  const sectionBorderClass = theme === 'dark' ? 'border-white/5' : 'border-slate-200/60'
-  const cardBgClass = theme === 'dark' ? 'bg-slate-950/40 border-white/5' : 'bg-white border-slate-200/60 shadow-lg'
+  const isDark  = theme === 'dark'
+  const bg      = isDark ? 'bg-[#1e1e1e]' : 'bg-white'
+  const fg      = isDark ? 'text-[#e8eaed]' : 'text-[#202124]'
+  const muted   = isDark ? 'text-[#9aa0a6]' : 'text-[#5f6368]'
+  const border  = isDark ? 'border-[#3c4043]' : 'border-[#dadce0]'
+  const cardBg  = isDark ? 'bg-[#2d2d2d] border-[#3c4043]' : 'bg-white border-[#dadce0]'
+  const surface = isDark ? 'bg-[#252525]' : 'bg-[#f8f9fa]'
+  const inputBg = isDark ? 'bg-[#3c4043] border-[#5f6368] text-[#e8eaed]' : 'bg-white border-[#dadce0] text-[#202124]'
+  const primary = isDark ? '#8ab4f8' : '#1a73e8'
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name || !email) return
     setSubmitted(true)
   }
 
   return (
-    <div className={`min-h-screen ${bgClass} flex flex-col font-sans transition-colors duration-300 relative`}>
-      
-      {/* Header */}
-      <header className={`sticky top-0 z-50 glass border-b ${headerClass} py-4 px-6 md:px-12 flex items-center justify-between`}>
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-              <Cpu className="w-5 h-5 text-slate-950 stroke-[2.5]" />
-            </div>
-            <span className={`text-xl font-bold tracking-tight ${textTitleClass}`}>
-              CallPilot<span className="text-cyan-500">.AI</span>
-            </span>
-          </Link>
-        </div>
+    <div className={`min-h-screen ${bg} ${fg} flex flex-col font-sans transition-colors duration-200`}
+      data-theme={isDark ? 'dark' : undefined}
+    >
+      <GoogleNav theme={theme} toggleTheme={toggleTheme} />
 
-        <nav className={`hidden md:flex items-center gap-8 text-sm font-medium ${textDescClass}`}>
-          <Link href="/features" className="hover:text-cyan-500 transition-colors">Features</Link>
-          <Link href="/pricing" className="hover:text-cyan-500 transition-colors">Pricing</Link>
-          <Link href="/blog" className="hover:text-cyan-500 transition-colors">Blog</Link>
-        </nav>
-
-        <div className="flex items-center gap-4">
-          <button
-            onClick={toggleTheme}
-            className={`p-2 rounded-lg border transition-all cursor-pointer ${
-              theme === 'dark' 
-                ? 'border-white/10 hover:bg-white/5 text-cyan-400' 
-                : 'border-slate-200 hover:bg-slate-100 text-cyan-600'
-            }`}
-            title="Toggle Theme"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-          <Link href="/login" className={`text-sm font-medium hover:text-cyan-500 transition-colors ${textDescClass}`}>
-            Sign In
-          </Link>
-          <Link
-            href="/signup"
-            className="bg-gradient-to-tr from-cyan-400 to-indigo-500 hover:from-cyan-300 hover:to-indigo-400 text-slate-950 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-cyan-500/20 hover:scale-[1.03]"
-          >
-            Connect Node
-          </Link>
+      {/* Hero */}
+      <section className={`py-20 px-6 text-center ${surface}`}>
+        <div className="max-w-3xl mx-auto">
+          <p className="text-sm font-semibold mb-3" style={{ color: primary }}>Contact us</p>
+          <h1 className={`text-4xl md:text-5xl font-bold mb-5 ${fg}`}>Get in touch</h1>
+          <p className={`text-lg ${muted}`}>Have a question about CallPilot? We'd love to hear from you.</p>
         </div>
-      </header>
+      </section>
 
       {/* Content */}
-      <main className="flex-grow z-10 relative py-20 px-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-        
-        {/* Left Column: Form */}
-        <div className={`p-8 rounded-xl border ${cardBgClass} space-y-6`}>
-          <div className="space-y-2">
-            <h1 className={`text-3xl font-black ${textTitleClass}`}>Get in Touch</h1>
-            <p className={`${textMutedClass} text-xs`}>Reach our outbound BPO solutions team or submit a customer support ticket.</p>
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
+
+          {/* Contact info */}
+          <div className="space-y-6">
+            <div>
+              <h2 className={`text-xl font-semibold mb-4 ${fg}`}>Contact information</h2>
+              <p className={`text-sm leading-relaxed ${muted}`}>
+                Our team typically responds within 1 business day. For urgent enterprise inquiries, use the phone number below.
+              </p>
+            </div>
+
+            {[
+              { icon: <Mail className="w-5 h-5" />, color: '#1a73e8', label: 'Email', value: 'hello@callpilot.ai' },
+              { icon: <Phone className="w-5 h-5" />, color: '#34a853', label: 'Phone', value: '+1 (888) 555-0142' },
+              { icon: <MapPin className="w-5 h-5" />, color: '#ea4335', label: 'Address', value: '340 Pine St, Suite 800, San Francisco, CA 94104' },
+            ].map((item, idx) => (
+              <div key={idx} className={`p-5 rounded-2xl border flex items-start gap-4 ${cardBg}`}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: item.color + '18', color: item.color }}>
+                  {item.icon}
+                </div>
+                <div>
+                  <div className={`text-xs font-semibold uppercase tracking-wide mb-1 ${muted}`}>{item.label}</div>
+                  <div className={`text-sm font-medium ${fg}`}>{item.value}</div>
+                </div>
+              </div>
+            ))}
           </div>
 
-          {submitted ? (
-            <div className="p-6 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center space-y-3">
-              <Check className="w-8 h-8 text-emerald-400 mx-auto" />
-              <h3 className={`text-lg font-bold ${textTitleClass}`}>Message Received!</h3>
-              <p className={`${textDescClass} text-xs`}>Thank you for contacting CallPilot. Our integration managers will reply within 24 hours.</p>
-            </div>
-          ) : (
-            <form onSubmit={handleSend} className="space-y-4 text-xs">
-              <div className="space-y-1.5">
-                <label className={`font-semibold ${textDescClass}`} htmlFor="name">Your Name</label>
-                <input
-                  id="name"
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Alex Mercer"
-                  className={`w-full border rounded-lg px-3.5 py-2.5 outline-none focus:border-cyan-500 ${
-                    theme === 'dark' ? 'bg-slate-900 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
-                  }`}
-                />
+          {/* Contact form */}
+          <div className={`p-8 rounded-2xl border ${cardBg}`}>
+            {submitted ? (
+              <div className="text-center py-10">
+                <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
+                  style={{ background: '#e6f4ea', color: '#34a853' }}>
+                  <ArrowRight className="w-6 h-6" />
+                </div>
+                <h3 className={`text-lg font-semibold mb-2 ${fg}`}>Message sent!</h3>
+                <p className={`text-sm ${muted}`}>Thanks for reaching out. We'll be in touch within 1 business day.</p>
               </div>
-
-              <div className="space-y-1.5">
-                <label className={`font-semibold ${textDescClass}`} htmlFor="email">Email Address</label>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="alex@bpo.com"
-                  className={`w-full border rounded-lg px-3.5 py-2.5 outline-none focus:border-cyan-500 ${
-                    theme === 'dark' ? 'bg-slate-900 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
-                  }`}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className={`font-semibold ${textDescClass}`} htmlFor="msg">Message / Inquiry</label>
-                <textarea
-                  id="msg"
-                  rows={4}
-                  value={msg}
-                  onChange={(e) => setMsg(e.target.value)}
-                  placeholder="How can we help your team automate call scoring?"
-                  className={`w-full border rounded-lg px-3.5 py-2.5 outline-none focus:border-cyan-500 ${
-                    theme === 'dark' ? 'bg-slate-900 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
-                  }`}
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-lg text-xs"
-              >
-                Send Message
-              </button>
-            </form>
-          )}
-        </div>
-
-        {/* Right Column: Contact Info */}
-        <div className="space-y-8">
-          <div className="space-y-3">
-            <h2 className={`text-2xl font-bold ${textTitleClass}`}>Our Office Location</h2>
-            <p className={`${textDescClass} text-sm leading-relaxed`}>
-              CallPilot is located in Silicon Valley, helping global customer service centers and BPOs optimize training loops with conversational data insights.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-start gap-4">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${
-                theme === 'dark' ? 'bg-slate-950/60 border-white/5' : 'bg-white border-slate-200'
-              }`}>
-                <Mail className="w-5 h-5 text-cyan-500" />
-              </div>
-              <div>
-                <span className={`block text-xs font-bold ${textTitleClass}`}>Email Support</span>
-                <span className={`${textMutedClass} text-xs`}>support@callpilot.ai</span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${
-                theme === 'dark' ? 'bg-slate-950/60 border-white/5' : 'bg-white border-slate-200'
-              }`}>
-                <Phone className="w-5 h-5 text-cyan-500" />
-              </div>
-              <div>
-                <span className={`block text-xs font-bold ${textTitleClass}`}>Outbound Sales</span>
-                <span className={`${textMutedClass} text-xs`}>+1 (555) 723-2891</span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${
-                theme === 'dark' ? 'bg-slate-950/60 border-white/5' : 'bg-white border-slate-200'
-              }`}>
-                <MapPin className="w-5 h-5 text-cyan-500" />
-              </div>
-              <div>
-                <span className={`block text-xs font-bold ${textTitleClass}`}>Headquarters</span>
-                <span className={`${textMutedClass} text-xs`}>428 University Ave, Palo Alto, CA 94301</span>
-              </div>
-            </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <h2 className={`text-lg font-semibold mb-5 ${fg}`}>Send us a message</h2>
+                {[
+                  { field: 'name',    label: 'Full name',      type: 'text',  placeholder: 'Your name' },
+                  { field: 'email',   label: 'Work email',     type: 'email', placeholder: 'you@company.com' },
+                  { field: 'company', label: 'Company',        type: 'text',  placeholder: 'Company name' },
+                ].map(({ field, label, type, placeholder }) => (
+                  <div key={field}>
+                    <label className={`block text-xs font-semibold mb-1.5 ${muted}`}>{label}</label>
+                    <input
+                      type={type}
+                      required
+                      placeholder={placeholder}
+                      value={form[field as keyof typeof form]}
+                      onChange={e => setForm(prev => ({ ...prev, [field]: e.target.value }))}
+                      className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 transition-all ${inputBg}`}
+                      style={{ focusRingColor: primary } as React.CSSProperties}
+                    />
+                  </div>
+                ))}
+                <div>
+                  <label className={`block text-xs font-semibold mb-1.5 ${muted}`}>Message</label>
+                  <textarea
+                    required
+                    rows={4}
+                    placeholder="How can we help you?"
+                    value={form.message}
+                    onChange={e => setForm(prev => ({ ...prev, message: e.target.value }))}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 transition-all resize-none ${inputBg}`}
+                  />
+                </div>
+                <button type="submit"
+                  className="w-full py-3 rounded-full font-semibold text-sm text-white transition-all hover:shadow-lg"
+                  style={{ background: primary }}
+                >
+                  Send message
+                </button>
+              </form>
+            )}
           </div>
         </div>
-      </main>
+      </section>
 
-      {/* Footer */}
-      <footer className={`border-t ${sectionBorderClass} py-8 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${textMutedClass}`}>
-        <p>&copy; {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
+      <footer className={`border-t py-8 px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${muted} ${border}`}>
+        <p>© {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
         <div className="flex gap-6">
-          <Link href="/privacy" className="hover:text-cyan-500">Privacy Policy</Link>
-          <Link href="/terms" className="hover:text-cyan-500">Terms of Service</Link>
+          <Link href="/privacy" className="hover:underline">Privacy</Link>
+          <Link href="/terms" className="hover:underline">Terms</Link>
         </div>
       </footer>
-
     </div>
   )
 }

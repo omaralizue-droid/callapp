@@ -2,10 +2,41 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Cpu, Sun, Moon } from 'lucide-react'
+import GoogleNav from '@/components/landing/GoogleNav'
+
+const SECTIONS = [
+  {
+    title: '1. Information We Collect',
+    content: 'We collect information you provide directly to us, including your name, email address, company name, and payment information when you register for an account. We also collect call recordings and transcripts you upload for processing, and usage data such as pages visited, features used, and browser type.',
+  },
+  {
+    title: '2. How We Use Your Information',
+    content: 'We use your information to provide, maintain, and improve CallPilot services. This includes processing call recordings to generate compliance scores, coaching cards, and CRM summaries. We may also use your information to send product updates and security notices, and to comply with legal obligations.',
+  },
+  {
+    title: '3. Data Storage and Security',
+    content: 'All call recordings and transcripts are encrypted at rest using AES-256. We are SOC2 Type II certified. Credit card numbers and PII detected in call audio are automatically scrubbed before storage. Data is stored on servers located in the United States.',
+  },
+  {
+    title: '4. Data Sharing',
+    content: 'We do not sell your data. We may share data with third-party service providers who help us operate our platform (e.g., cloud infrastructure, payment processors). All third parties are bound by contractual data processing agreements.',
+  },
+  {
+    title: '5. Your Rights',
+    content: 'You have the right to access, correct, or delete your personal data at any time. To exercise these rights, contact us at privacy@callpilot.ai. We will respond to all requests within 30 days.',
+  },
+  {
+    title: '6. Cookies',
+    content: 'We use essential cookies to operate our platform and analytics cookies to understand how users interact with our product. You can disable analytics cookies in your browser settings without affecting platform functionality.',
+  },
+  {
+    title: '7. Changes to This Policy',
+    content: 'We may update this Privacy Policy from time to time. We will notify you of material changes via email or in-product notification at least 30 days before they take effect.',
+  },
+]
 
 export default function PrivacyPage() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [theme, setTheme] = useState<'dark' | 'light'>('light')
 
   useEffect(() => {
     const saved = localStorage.getItem('landing-theme') as 'dark' | 'light'
@@ -18,92 +49,66 @@ export default function PrivacyPage() {
     localStorage.setItem('landing-theme', next)
   }
 
-  const bgClass = theme === 'dark' ? 'bg-[#060813] text-slate-100' : 'bg-slate-50 text-slate-800'
-  const headerClass = theme === 'dark' ? 'bg-slate-950/80 border-white/5' : 'bg-white/80 border-slate-200/60 shadow-sm'
-  const textTitleClass = theme === 'dark' ? 'text-white' : 'text-slate-900'
-  const textDescClass = theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
-  const textMutedClass = theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
-  const sectionBorderClass = theme === 'dark' ? 'border-white/5' : 'border-slate-200/60'
+  const isDark  = theme === 'dark'
+  const bg      = isDark ? 'bg-[#1e1e1e]' : 'bg-white'
+  const fg      = isDark ? 'text-[#e8eaed]' : 'text-[#202124]'
+  const muted   = isDark ? 'text-[#9aa0a6]' : 'text-[#5f6368]'
+  const border  = isDark ? 'border-[#3c4043]' : 'border-[#dadce0]'
+  const cardBg  = isDark ? 'bg-[#2d2d2d] border-[#3c4043]' : 'bg-white border-[#dadce0]'
+  const surface = isDark ? 'bg-[#252525]' : 'bg-[#f8f9fa]'
+  const primary = isDark ? '#8ab4f8' : '#1a73e8'
 
   return (
-    <div className={`min-h-screen ${bgClass} flex flex-col font-sans transition-colors duration-300 relative`}>
-      
-      {/* Header */}
-      <header className={`sticky top-0 z-50 glass border-b ${headerClass} py-4 px-6 md:px-12 flex items-center justify-between`}>
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-              <Cpu className="w-5 h-5 text-slate-950 stroke-[2.5]" />
+    <div className={`min-h-screen ${bg} ${fg} flex flex-col font-sans transition-colors duration-200`}
+      data-theme={isDark ? 'dark' : undefined}
+    >
+      <GoogleNav theme={theme} toggleTheme={toggleTheme} />
+
+      <section className={`py-16 px-6 ${surface}`}>
+        <div className="max-w-3xl mx-auto">
+          <p className="text-sm font-semibold mb-3" style={{ color: primary }}>Legal</p>
+          <h1 className={`text-4xl font-bold mb-3 ${fg}`}>Privacy Policy</h1>
+          <p className={`text-sm ${muted}`}>Last updated: January 1, 2025</p>
+        </div>
+      </section>
+
+      <main className="py-16 px-6 flex-grow">
+        <div className="max-w-3xl mx-auto space-y-6">
+          {/* Intro */}
+          <div className={`p-7 rounded-2xl border ${cardBg}`}>
+            <p className={`text-sm leading-relaxed ${muted}`}>
+              CallPilot AI Inc. ("CallPilot," "we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and share information about you when you use our AI call analytics platform. By using CallPilot, you agree to the practices described in this policy.
+            </p>
+          </div>
+
+          {/* Sections */}
+          {SECTIONS.map((section, idx) => (
+            <div key={idx} className={`p-7 rounded-2xl border ${cardBg}`}>
+              <h2 className={`text-base font-semibold mb-3 ${fg}`}>{section.title}</h2>
+              <p className={`text-sm leading-relaxed ${muted}`}>{section.content}</p>
             </div>
-            <span className={`text-xl font-bold tracking-tight ${textTitleClass}`}>
-              CallPilot<span className="text-cyan-500">.AI</span>
-            </span>
-          </Link>
+          ))}
+
+          {/* Contact */}
+          <div className={`p-7 rounded-2xl border ${cardBg}`}>
+            <h2 className={`text-base font-semibold mb-3 ${fg}`}>8. Contact Us</h2>
+            <p className={`text-sm leading-relaxed ${muted}`}>
+              If you have questions about this Privacy Policy, contact us at:{' '}
+              <a href="mailto:privacy@callpilot.ai" style={{ color: primary }} className="font-medium">
+                privacy@callpilot.ai
+              </a>
+            </p>
+          </div>
         </div>
-
-        <nav className={`hidden md:flex items-center gap-8 text-sm font-medium ${textDescClass}`}>
-          <Link href="/features" className="hover:text-cyan-500 transition-colors">Features</Link>
-          <Link href="/pricing" className="hover:text-cyan-500 transition-colors">Pricing</Link>
-          <Link href="/blog" className="hover:text-cyan-500 transition-colors">Blog</Link>
-        </nav>
-
-        <div className="flex items-center gap-4">
-          <button
-            onClick={toggleTheme}
-            className={`p-2 rounded-lg border transition-all cursor-pointer ${
-              theme === 'dark' 
-                ? 'border-white/10 hover:bg-white/5 text-cyan-400' 
-                : 'border-slate-200 hover:bg-slate-100 text-cyan-600'
-            }`}
-            title="Toggle Theme"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-          <Link href="/login" className={`text-sm font-medium hover:text-cyan-500 transition-colors ${textDescClass}`}>
-            Sign In
-          </Link>
-          <Link
-            href="/signup"
-            className="bg-gradient-to-tr from-cyan-400 to-indigo-500 hover:from-cyan-300 hover:to-indigo-400 text-slate-950 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-cyan-500/20 hover:scale-[1.03]"
-          >
-            Connect Node
-          </Link>
-        </div>
-      </header>
-
-      {/* Content */}
-      <main className="flex-grow z-10 relative py-20 px-6 max-w-3xl mx-auto space-y-8">
-        <h1 className={`text-3xl md:text-4xl font-black ${textTitleClass}`}>Privacy Policy</h1>
-        <p className={`${textMutedClass} text-xs`}>Last Updated: June 30, 2026</p>
-        
-        <p className={`${textDescClass} text-sm leading-relaxed`}>
-          At CallPilot, we prioritize the confidentiality and safety of your customer voice data. This Privacy Policy details how we collect, process, mask, and redact speech analytics data and account information.
-        </p>
-
-        <section className="space-y-3">
-          <h2 className={`text-xl font-bold ${textTitleClass}`}>1. Data Collection & Speech Analysis</h2>
-          <p className={`${textDescClass} text-xs leading-relaxed`}>
-            We analyze voice call recordings uploaded by your team or integrated via telephony webhooks. Transcripts and metrics are processed using multi-modal LLM pipelines. Credit card details, safety pins, and PII are redacted automatically.
-          </p>
-        </section>
-
-        <section className="space-y-3">
-          <h2 className={`text-xl font-bold ${textTitleClass}`}>2. Information Encryption & Security</h2>
-          <p className={`${textDescClass} text-xs leading-relaxed`}>
-            All database operations, transcripts, and metrics files are encrypted in transit via SSL/TLS and at rest using AES-256 keys. Access to secure pipelines complies with SOC2 Type II guidelines.
-          </p>
-        </section>
       </main>
 
-      {/* Footer */}
-      <footer className={`border-t ${sectionBorderClass} py-8 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${textMutedClass}`}>
-        <p>&copy; {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
+      <footer className={`border-t py-8 px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${muted} ${border}`}>
+        <p>© {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
         <div className="flex gap-6">
-          <Link href="/privacy" className="text-cyan-500 font-semibold">Privacy Policy</Link>
-          <Link href="/terms" className="hover:text-cyan-500">Terms of Service</Link>
+          <Link href="/privacy" style={{ color: primary }}>Privacy</Link>
+          <Link href="/terms" className="hover:underline">Terms</Link>
         </div>
       </footer>
-
     </div>
   )
 }

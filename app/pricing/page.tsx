@@ -2,54 +2,51 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Cpu, Check, Sun, Moon, ArrowRight } from 'lucide-react'
+import { Check, ArrowRight } from 'lucide-react'
+import GoogleNav from '@/components/landing/GoogleNav'
 
-const PRICING_PLANS = [
+const PLANS = [
   {
     name: 'Starter',
     price: '$49',
-    unit: '/mo',
-    desc: 'Perfect for small outbound teams or quality assurance pilots.',
-    features: ['Up to 500 call hours/mo', 'Standard QA Compliance scoring', 'Basic AI call summaries', 'CSV metadata export', 'Email support'],
+    unit: '/month',
+    desc: 'Perfect for small outbound teams or QA pilots.',
+    features: ['Up to 500 call hours/mo', 'Standard QA compliance scoring', 'Basic AI call summaries', 'CSV export', 'Email support'],
     isPopular: false,
-    cta: 'Start Free Trial',
+    cta: 'Start free trial',
+    ctaHref: '/signup',
   },
   {
     name: 'Professional',
     price: '$199',
-    unit: '/mo',
-    desc: 'Ideal for scaling BPO departments requiring rich coaching hubs.',
-    features: [
-      'Up to 3,000 call hours/mo',
-      'Custom QA compliance rubrics',
-      'Advanced agent coaching tips',
-      'Sentiment timeline analysis',
-      'HubSpot & Salesforce integrations',
-      'Priority support',
-    ],
+    unit: '/month',
+    desc: 'Ideal for scaling BPO departments with rich coaching needs.',
+    features: ['Up to 3,000 call hours/mo', 'Custom QA compliance rubrics', 'Advanced AI coaching cards', 'Sentiment timeline analysis', 'HubSpot & Salesforce sync', 'Priority support'],
     isPopular: true,
-    cta: 'Get Started Now',
+    cta: 'Get started',
+    ctaHref: '/signup',
   },
   {
     name: 'Enterprise',
     price: 'Custom',
     unit: '',
-    desc: 'Built for enterprise multi-site operations and call centers.',
-    features: [
-      'Unlimited call volume',
-      'Dedicated LLM instance custom prompts',
-      'SSO & role-based workspace partitions',
-      'Custom security audits (SOC2)',
-      'Dedicated account manager',
-      '99.9% uptime SLA',
-    ],
+    desc: 'Built for enterprise multi-site operations.',
+    features: ['Unlimited call volume', 'Dedicated LLM instance', 'SSO & role-based access', 'SOC2 compliance reports', 'Dedicated account manager', '99.9% uptime SLA'],
     isPopular: false,
-    cta: 'Contact Sales',
+    cta: 'Contact sales',
+    ctaHref: '/contact',
   },
 ]
 
+const FAQS = [
+  { q: 'What counts as a "call hour"?', a: 'A call hour is measured by the exact duration of audio uploaded or integrated via telephony. We bill by the second, not rounded minutes.' },
+  { q: 'Can I change my plan later?', a: 'Yes. Upgrade, downgrade, or cancel at any time directly through your admin settings — no lock-in contracts.' },
+  { q: 'Do you offer custom SLA agreements?', a: 'Enterprise plans include guaranteed 99.9% processing uptime, dedicated infrastructure, and custom SOC2 compliance reporting.' },
+  { q: 'Is there a free trial?', a: 'All plans include a 14-day free trial with full access. No credit card required to start.' },
+]
+
 export default function PricingPage() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [theme, setTheme] = useState<'dark' | 'light'>('light')
 
   useEffect(() => {
     const saved = localStorage.getItem('landing-theme') as 'dark' | 'light'
@@ -62,126 +59,80 @@ export default function PricingPage() {
     localStorage.setItem('landing-theme', next)
   }
 
-  const bgClass = theme === 'dark' ? 'bg-[#060813] text-slate-100' : 'bg-slate-50 text-slate-800'
-  const headerClass = theme === 'dark' ? 'bg-slate-950/80 border-white/5' : 'bg-white/80 border-slate-200/60 shadow-sm'
-  const textTitleClass = theme === 'dark' ? 'text-white' : 'text-slate-900'
-  const textDescClass = theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
-  const textMutedClass = theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
-  const sectionBorderClass = theme === 'dark' ? 'border-white/5' : 'border-slate-200/60'
-
-  const faqs = [
-    { q: 'What counts as a "call hour"?', a: 'A call hour is measured by the duration of the audio uploaded or integrated via telephony streams. We charge by exact seconds, not rounded minutes.' },
-    { q: 'Can I change my plan later?', a: 'Yes. You can upgrade, downgrade, or cancel your subscription at any time directly through your admin settings page.' },
-    { q: 'Do you offer custom SLA agreements?', a: 'Yes. Enterprise plan agreements offer guaranteed 99.9% processing uptime, dedicated servers, and custom SOC2 compliance reporting.' }
-  ]
+  const isDark  = theme === 'dark'
+  const bg      = isDark ? 'bg-[#1e1e1e]' : 'bg-white'
+  const fg      = isDark ? 'text-[#e8eaed]' : 'text-[#202124]'
+  const muted   = isDark ? 'text-[#9aa0a6]' : 'text-[#5f6368]'
+  const border  = isDark ? 'border-[#3c4043]' : 'border-[#dadce0]'
+  const cardBg  = isDark ? 'bg-[#2d2d2d] border-[#3c4043]' : 'bg-white border-[#dadce0]'
+  const surface = isDark ? 'bg-[#252525]' : 'bg-[#f8f9fa]'
+  const primary = isDark ? '#8ab4f8' : '#1a73e8'
 
   return (
-    <div className={`min-h-screen ${bgClass} flex flex-col font-sans transition-colors duration-300 relative`}>
-      
-      {/* Header */}
-      <header className={`sticky top-0 z-50 glass border-b ${headerClass} py-4 px-6 md:px-12 flex items-center justify-between`}>
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-              <Cpu className="w-5 h-5 text-slate-950 stroke-[2.5]" />
-            </div>
-            <span className={`text-xl font-bold tracking-tight ${textTitleClass}`}>
-              CallPilot<span className="text-cyan-500">.AI</span>
-            </span>
-          </Link>
-        </div>
+    <div className={`min-h-screen ${bg} ${fg} flex flex-col font-sans transition-colors duration-200`}
+      data-theme={isDark ? 'dark' : undefined}
+    >
+      <GoogleNav activePage="pricing" theme={theme} toggleTheme={toggleTheme} />
 
-        <nav className={`hidden md:flex items-center gap-8 text-sm font-medium ${textDescClass}`}>
-          <Link href="/features" className="hover:text-cyan-500 transition-colors">Features</Link>
-          <Link href="/pricing" className="text-cyan-500 font-semibold">Pricing</Link>
-          <Link href="/blog" className="hover:text-cyan-500 transition-colors">Blog</Link>
-        </nav>
-
-        <div className="flex items-center gap-4">
-          <button
-            onClick={toggleTheme}
-            className={`p-2 rounded-lg border transition-all cursor-pointer ${
-              theme === 'dark' 
-                ? 'border-white/10 hover:bg-white/5 text-cyan-400' 
-                : 'border-slate-200 hover:bg-slate-100 text-cyan-600'
-            }`}
-            title="Toggle Theme"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-          <Link href="/login" className={`text-sm font-medium hover:text-cyan-500 transition-colors ${textDescClass}`}>
-            Sign In
-          </Link>
-          <Link
-            href="/signup"
-            className="bg-gradient-to-tr from-cyan-400 to-indigo-500 hover:from-cyan-300 hover:to-indigo-400 text-slate-950 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-cyan-500/20 hover:scale-[1.03]"
-          >
-            Connect Node
-          </Link>
-        </div>
-      </header>
-
-      {/* Content */}
-      <main className="flex-grow z-10 relative py-20 px-6 max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <span className="text-xs font-bold text-cyan-500 tracking-wider uppercase mb-3 block">Flexible Plans</span>
-          <h1 className={`text-4xl md:text-5xl font-black ${textTitleClass} mb-4`}>
-            Predictable Pricing for Call Centers
+      {/* Hero */}
+      <section className={`py-20 px-6 text-center ${surface}`}>
+        <div className="max-w-3xl mx-auto">
+          <p className="text-sm font-semibold mb-3" style={{ color: primary }}>Pricing</p>
+          <h1 className={`text-4xl md:text-5xl font-bold mb-5 ${fg}`}>
+            Simple, transparent pricing
           </h1>
-          <p className={`${textDescClass} text-lg max-w-xl mx-auto`}>
-            Select the processing capacity that matches your seat count. All subscriptions include core CRM integrations.
+          <p className={`text-lg max-w-xl mx-auto ${muted}`}>
+            Choose the plan that fits your team. All plans include a 14-day free trial — no credit card required.
           </p>
         </div>
+      </section>
 
-        {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {PRICING_PLANS.map((plan, idx) => (
-            <div
-              key={idx}
-              className={`rounded-xl p-8 flex flex-col justify-between relative transition-all duration-300 border ${
+      {/* Pricing Cards */}
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+          {PLANS.map((plan, idx) => (
+            <div key={idx}
+              className={`p-8 rounded-2xl border flex flex-col relative transition-all ${
                 plan.isPopular
-                  ? theme === 'dark'
-                    ? 'bg-slate-900/90 border-cyan-500 shadow-xl shadow-cyan-950/30'
-                    : 'bg-white border-cyan-500 shadow-xl shadow-cyan-100'
-                  : theme === 'dark'
-                    ? 'bg-slate-950/40 border-white/5 hover:border-white/10'
-                    : 'bg-white border-slate-200/60 shadow-md shadow-slate-100'
+                  ? isDark
+                    ? 'bg-[#1a3a5c] border-[#8ab4f8] shadow-xl'
+                    : 'bg-white border-[#1a73e8] shadow-xl'
+                  : `${cardBg} hover:shadow-md`
               }`}
             >
               {plan.isPopular && (
-                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-cyan-500 text-slate-950 text-[10px] font-black tracking-widest px-3 py-1 rounded-full uppercase">
-                  Most Popular
+                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-white text-[10px] font-bold tracking-wider px-4 py-1 rounded-full uppercase"
+                  style={{ background: primary }}>
+                  Most popular
                 </span>
               )}
-              
-              <div>
-                <h3 className={`text-lg font-bold ${textTitleClass} mb-2`}>{plan.name}</h3>
-                <p className={`${textMutedClass} text-xs mb-6 leading-relaxed`}>{plan.desc}</p>
-                
-                <div className="flex items-baseline gap-1 mb-8">
-                  <span className={`text-4xl font-black ${textTitleClass}`}>{plan.price}</span>
-                  <span className={`${textMutedClass} text-sm font-semibold`}>{plan.unit}</span>
-                </div>
 
-                <ul className="space-y-4 mb-8">
-                  {plan.features.map((feat, fidx) => (
-                    <li key={fidx} className={`flex items-start gap-2.5 text-xs ${textDescClass}`}>
-                      <Check className="w-4 h-4 text-cyan-500 shrink-0 mt-0.5" />
-                      <span>{feat}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="mb-6">
+                <h3 className={`text-lg font-semibold mb-1 ${fg}`}>{plan.name}</h3>
+                <p className={`text-sm ${muted}`}>{plan.desc}</p>
               </div>
 
-              <Link
-                href="/signup"
-                className={`w-full text-center py-3 rounded-lg font-bold text-xs transition-all ${
+              <div className="flex items-baseline gap-1 mb-8">
+                <span className={`text-4xl font-bold ${fg}`}>{plan.price}</span>
+                <span className={`text-sm ${muted}`}>{plan.unit}</span>
+              </div>
+
+              <ul className="space-y-3 mb-8 flex-grow">
+                {plan.features.map((feat, fidx) => (
+                  <li key={fidx} className={`flex items-start gap-2.5 text-sm ${muted}`}>
+                    <Check className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#34a853' }} />
+                    <span>{feat}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Link href={plan.ctaHref}
+                className={`w-full text-center py-3 rounded-full font-semibold text-sm transition-all ${
                   plan.isPopular
-                    ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20'
-                    : theme === 'dark'
-                      ? 'bg-white/10 hover:bg-white/15 text-white'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
+                    ? 'text-white shadow-md hover:shadow-lg'
+                    : `border ${border} ${fg}`
                 }`}
+                style={plan.isPopular ? { background: primary } : {}}
               >
                 {plan.cta}
               </Link>
@@ -189,29 +140,55 @@ export default function PricingPage() {
           ))}
         </div>
 
-        {/* FAQs */}
-        <section className={`mt-24 pt-16 border-t ${sectionBorderClass}`}>
-          <h2 className={`text-3xl font-bold text-center ${textTitleClass} mb-12`}>Frequently Asked Questions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {faqs.map((faq, idx) => (
-              <div key={idx} className="space-y-2">
-                <h3 className={`text-base font-bold ${textTitleClass}`}>{faq.q}</h3>
-                <p className={`${textDescClass} text-xs leading-relaxed`}>{faq.a}</p>
+        {/* Feature comparison note */}
+        <div className="max-w-5xl mx-auto mt-10 text-center">
+          <p className={`text-sm ${muted}`}>
+            All plans include: AI call transcription, compliance scoring, CRM export, and SSL encryption.
+          </p>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className={`py-20 px-6 ${surface}`}>
+        <div className="max-w-3xl mx-auto">
+          <h2 className={`text-3xl font-bold text-center mb-12 ${fg}`}>Frequently asked questions</h2>
+          <div className="space-y-5">
+            {FAQS.map((faq, idx) => (
+              <div key={idx} className={`p-6 rounded-2xl border ${cardBg}`}>
+                <h3 className={`text-base font-semibold mb-2 ${fg}`}>{faq.q}</h3>
+                <p className={`text-sm leading-relaxed ${muted}`}>{faq.a}</p>
               </div>
             ))}
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
 
-      {/* Footer */}
-      <footer className={`border-t ${sectionBorderClass} py-8 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${textMutedClass}`}>
-        <p>&copy; {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
+      {/* CTA */}
+      <section className="py-20 px-6">
+        <div className="max-w-3xl mx-auto text-center rounded-2xl p-14"
+          style={{ background: isDark ? 'linear-gradient(135deg, #1a3a5c, #1e2d1e)' : 'linear-gradient(135deg, #1a73e8, #0d652d)' }}
+        >
+          <h2 className="text-3xl font-bold text-white mb-4">Start your free trial today</h2>
+          <p className="text-white/80 max-w-md mx-auto mb-8">
+            14 days free. No credit card required. Cancel anytime.
+          </p>
+          <Link href="/signup"
+            className="inline-flex items-center gap-2 bg-white font-semibold text-sm px-8 py-3.5 rounded-full hover:shadow-lg transition-all"
+            style={{ color: '#1a73e8' }}
+          >
+            Get started free
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </section>
+
+      <footer className={`border-t py-8 px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${muted} ${border}`}>
+        <p>© {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
         <div className="flex gap-6">
-          <Link href="/privacy" className="hover:text-cyan-500">Privacy Policy</Link>
-          <Link href="/terms" className="hover:text-cyan-500">Terms of Service</Link>
+          <Link href="/privacy" className="hover:underline">Privacy</Link>
+          <Link href="/terms" className="hover:underline">Terms</Link>
         </div>
       </footer>
-
     </div>
   )
 }

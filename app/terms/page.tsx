@@ -2,10 +2,45 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Cpu, Sun, Moon } from 'lucide-react'
+import GoogleNav from '@/components/landing/GoogleNav'
+
+const SECTIONS = [
+  {
+    title: '1. Acceptance of Terms',
+    content: 'By accessing or using CallPilot AI ("Service"), you agree to be bound by these Terms of Service. If you do not agree with any part of these terms, you may not access the Service.',
+  },
+  {
+    title: '2. Use of the Service',
+    content: 'You may use CallPilot only for lawful business purposes. You are responsible for ensuring that all call recordings you upload comply with applicable wiretapping, recording consent, and privacy laws in your jurisdiction. In many jurisdictions, you must obtain consent from all parties before recording a phone call.',
+  },
+  {
+    title: '3. Account Responsibilities',
+    content: 'You are responsible for maintaining the confidentiality of your account credentials. You agree to notify us immediately of any unauthorized use of your account. You are responsible for all activities that occur under your account.',
+  },
+  {
+    title: '4. Subscription and Billing',
+    content: 'Subscriptions are billed monthly or annually in advance. All fees are non-refundable except as required by law or as specified in our refund policy. We reserve the right to modify pricing with 30 days written notice.',
+  },
+  {
+    title: '5. Intellectual Property',
+    content: 'CallPilot retains all intellectual property rights to the platform, including AI models, software, and documentation. You retain ownership of all call recordings and data you upload. You grant us a limited license to process your data solely to provide the Service.',
+  },
+  {
+    title: '6. Limitation of Liability',
+    content: 'To the maximum extent permitted by law, CallPilot shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service. Our total liability shall not exceed the fees paid in the 3 months preceding the claim.',
+  },
+  {
+    title: '7. Termination',
+    content: 'Either party may terminate these Terms at any time. Upon termination, your right to use the Service immediately ceases. We will retain your data for 30 days following termination before permanent deletion, unless required by law to retain it longer.',
+  },
+  {
+    title: '8. Governing Law',
+    content: 'These Terms are governed by the laws of the State of California, United States, without regard to conflict of law principles. Any disputes shall be resolved in the courts of San Francisco County, California.',
+  },
+]
 
 export default function TermsPage() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [theme, setTheme] = useState<'dark' | 'light'>('light')
 
   useEffect(() => {
     const saved = localStorage.getItem('landing-theme') as 'dark' | 'light'
@@ -18,92 +53,63 @@ export default function TermsPage() {
     localStorage.setItem('landing-theme', next)
   }
 
-  const bgClass = theme === 'dark' ? 'bg-[#060813] text-slate-100' : 'bg-slate-50 text-slate-800'
-  const headerClass = theme === 'dark' ? 'bg-slate-950/80 border-white/5' : 'bg-white/80 border-slate-200/60 shadow-sm'
-  const textTitleClass = theme === 'dark' ? 'text-white' : 'text-slate-900'
-  const textDescClass = theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
-  const textMutedClass = theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
-  const sectionBorderClass = theme === 'dark' ? 'border-white/5' : 'border-slate-200/60'
+  const isDark  = theme === 'dark'
+  const bg      = isDark ? 'bg-[#1e1e1e]' : 'bg-white'
+  const fg      = isDark ? 'text-[#e8eaed]' : 'text-[#202124]'
+  const muted   = isDark ? 'text-[#9aa0a6]' : 'text-[#5f6368]'
+  const border  = isDark ? 'border-[#3c4043]' : 'border-[#dadce0]'
+  const cardBg  = isDark ? 'bg-[#2d2d2d] border-[#3c4043]' : 'bg-white border-[#dadce0]'
+  const surface = isDark ? 'bg-[#252525]' : 'bg-[#f8f9fa]'
+  const primary = isDark ? '#8ab4f8' : '#1a73e8'
 
   return (
-    <div className={`min-h-screen ${bgClass} flex flex-col font-sans transition-colors duration-300 relative`}>
-      
-      {/* Header */}
-      <header className={`sticky top-0 z-50 glass border-b ${headerClass} py-4 px-6 md:px-12 flex items-center justify-between`}>
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-              <Cpu className="w-5 h-5 text-slate-950 stroke-[2.5]" />
+    <div className={`min-h-screen ${bg} ${fg} flex flex-col font-sans transition-colors duration-200`}
+      data-theme={isDark ? 'dark' : undefined}
+    >
+      <GoogleNav theme={theme} toggleTheme={toggleTheme} />
+
+      <section className={`py-16 px-6 ${surface}`}>
+        <div className="max-w-3xl mx-auto">
+          <p className="text-sm font-semibold mb-3" style={{ color: primary }}>Legal</p>
+          <h1 className={`text-4xl font-bold mb-3 ${fg}`}>Terms of Service</h1>
+          <p className={`text-sm ${muted}`}>Last updated: January 1, 2025</p>
+        </div>
+      </section>
+
+      <main className="py-16 px-6 flex-grow">
+        <div className="max-w-3xl mx-auto space-y-6">
+          <div className={`p-7 rounded-2xl border ${cardBg}`}>
+            <p className={`text-sm leading-relaxed ${muted}`}>
+              Please read these Terms of Service carefully before using CallPilot AI. These terms constitute a legally binding agreement between you and CallPilot AI Inc. governing your access to and use of the CallPilot platform and services.
+            </p>
+          </div>
+
+          {SECTIONS.map((section, idx) => (
+            <div key={idx} className={`p-7 rounded-2xl border ${cardBg}`}>
+              <h2 className={`text-base font-semibold mb-3 ${fg}`}>{section.title}</h2>
+              <p className={`text-sm leading-relaxed ${muted}`}>{section.content}</p>
             </div>
-            <span className={`text-xl font-bold tracking-tight ${textTitleClass}`}>
-              CallPilot<span className="text-cyan-500">.AI</span>
-            </span>
-          </Link>
+          ))}
+
+          <div className={`p-7 rounded-2xl border ${cardBg}`}>
+            <h2 className={`text-base font-semibold mb-3 ${fg}`}>9. Contact Us</h2>
+            <p className={`text-sm leading-relaxed ${muted}`}>
+              Questions about these Terms? Contact us at:{' '}
+              <a href="mailto:legal@callpilot.ai" style={{ color: primary }} className="font-medium">
+                legal@callpilot.ai
+              </a>
+            </p>
+          </div>
         </div>
-
-        <nav className={`hidden md:flex items-center gap-8 text-sm font-medium ${textDescClass}`}>
-          <Link href="/features" className="hover:text-cyan-500 transition-colors">Features</Link>
-          <Link href="/pricing" className="hover:text-cyan-500 transition-colors">Pricing</Link>
-          <Link href="/blog" className="hover:text-cyan-500 transition-colors">Blog</Link>
-        </nav>
-
-        <div className="flex items-center gap-4">
-          <button
-            onClick={toggleTheme}
-            className={`p-2 rounded-lg border transition-all cursor-pointer ${
-              theme === 'dark' 
-                ? 'border-white/10 hover:bg-white/5 text-cyan-400' 
-                : 'border-slate-200 hover:bg-slate-100 text-cyan-600'
-            }`}
-            title="Toggle Theme"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-          <Link href="/login" className={`text-sm font-medium hover:text-cyan-500 transition-colors ${textDescClass}`}>
-            Sign In
-          </Link>
-          <Link
-            href="/signup"
-            className="bg-gradient-to-tr from-cyan-400 to-indigo-500 hover:from-cyan-300 hover:to-indigo-400 text-slate-950 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-cyan-500/20 hover:scale-[1.03]"
-          >
-            Connect Node
-          </Link>
-        </div>
-      </header>
-
-      {/* Content */}
-      <main className="flex-grow z-10 relative py-20 px-6 max-w-3xl mx-auto space-y-8">
-        <h1 className={`text-3xl md:text-4xl font-black ${textTitleClass}`}>Terms of Service</h1>
-        <p className={`${textMutedClass} text-xs`}>Last Updated: June 30, 2026</p>
-
-        <p className={`${textDescClass} text-sm leading-relaxed`}>
-          By registering a workspace on CallPilot.AI, you agree to these Terms of Service. Please review our service guidelines, billing terms, and compliance disclosures.
-        </p>
-
-        <section className="space-y-3">
-          <h2 className={`text-xl font-bold ${textTitleClass}`}>1. User License & Telephony Access</h2>
-          <p className={`${textDescClass} text-xs leading-relaxed`}>
-            Subject to plan seat rules, CallPilot grants a revocable, non-transferable license to access the QA dashboard. You are responsible for ensuring that recording disclosures are stated in compliance with local telephony recording laws.
-          </p>
-        </section>
-
-        <section className="space-y-3">
-          <h2 className={`text-xl font-bold ${textTitleClass}`}>2. Subscriptions & Billing</h2>
-          <p className={`${textDescClass} text-xs leading-relaxed`}>
-            Monthly subscriptions are billed in advance based on the selected tier. Unused call hour credits expire at the end of the monthly billing cycle and do not roll over.
-          </p>
-        </section>
       </main>
 
-      {/* Footer */}
-      <footer className={`border-t ${sectionBorderClass} py-8 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${textMutedClass}`}>
-        <p>&copy; {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
+      <footer className={`border-t py-8 px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${muted} ${border}`}>
+        <p>© {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
         <div className="flex gap-6">
-          <Link href="/privacy" className="hover:text-cyan-500">Privacy Policy</Link>
-          <Link href="/terms" className="text-cyan-500 font-semibold">Terms of Service</Link>
+          <Link href="/privacy" className="hover:underline">Privacy</Link>
+          <Link href="/terms" style={{ color: primary }}>Terms</Link>
         </div>
       </footer>
-
     </div>
   )
 }

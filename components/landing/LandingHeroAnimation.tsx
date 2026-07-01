@@ -79,11 +79,11 @@ export default function LandingHeroAnimation({ theme }: LandingHeroAnimationProp
     const particleSystem = new THREE.Points(geometry, pointsMaterial)
     scene.add(particleSystem)
 
-    // Create line connection lines
+    // Create line connection lines - lower opacity for clean Google look
     const lineMaterial = new THREE.LineBasicMaterial({
       color: connectionColor,
       transparent: true,
-      opacity: 0.15,
+      opacity: theme === 'dark' ? 0.12 : 0.08,
       blending: THREE.AdditiveBlending,
     })
 

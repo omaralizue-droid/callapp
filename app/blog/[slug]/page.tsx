@@ -2,12 +2,26 @@
 
 import { use, useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Cpu, Sun, Moon, ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Clock, ArrowRight } from 'lucide-react'
 import { BLOG_POSTS } from '@/lib/blogData'
+import GoogleNav from '@/components/landing/GoogleNav'
+
+const CATEGORY_COLORS: Record<string, string> = {
+  'AI Call Center':           '#1a73e8',
+  'Call Summary AI':          '#34a853',
+  'QA Automation':            '#ea4335',
+  'Contact Center Software':  '#f9ab00',
+  'Customer Support AI':      '#1a73e8',
+  'Speech Analytics':         '#34a853',
+  'Conversation Intelligence':'#ea4335',
+  'AI Coaching':              '#f9ab00',
+  'Call Scoring':             '#1a73e8',
+  'Agent Performance':        '#34a853',
+}
 
 export default function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [theme, setTheme] = useState<'dark' | 'light'>('light')
 
   useEffect(() => {
     const saved = localStorage.getItem('landing-theme') as 'dark' | 'light'
@@ -22,26 +36,28 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
 
   const post = BLOG_POSTS.find((p) => p.slug === slug)
 
+  const isDark  = theme === 'dark'
+  const bg      = isDark ? 'bg-[#1e1e1e]' : 'bg-white'
+  const fg      = isDark ? 'text-[#e8eaed]' : 'text-[#202124]'
+  const muted   = isDark ? 'text-[#9aa0a6]' : 'text-[#5f6368]'
+  const border  = isDark ? 'border-[#3c4043]' : 'border-[#dadce0]'
+  const cardBg  = isDark ? 'bg-[#2d2d2d] border-[#3c4043]' : 'bg-[#f8f9fa] border-[#dadce0]'
+  const primary = isDark ? '#8ab4f8' : '#1a73e8'
+
   if (!post) {
     return (
-      <div className="min-h-screen bg-[#060813] text-slate-100 flex flex-col items-center justify-center space-y-4">
-        <h1 className="text-2xl font-bold">Article Not Found</h1>
-        <Link href="/blog" className="text-cyan-500 hover:underline">
-          Return to Blog Hub
+      <div className={`min-h-screen ${bg} ${fg} flex flex-col items-center justify-center gap-4`}>
+        <h1 className="text-2xl font-bold">Article not found</h1>
+        <Link href="/blog" className="text-sm font-medium" style={{ color: primary }}>
+          ← Back to Blog
         </Link>
       </div>
     )
   }
 
-  const bgClass = theme === 'dark' ? 'bg-[#060813] text-slate-100' : 'bg-slate-50 text-slate-800'
-  const headerClass = theme === 'dark' ? 'bg-slate-950/80 border-white/5' : 'bg-white/80 border-slate-200/60 shadow-sm'
-  const textTitleClass = theme === 'dark' ? 'text-white' : 'text-slate-900'
-  const textDescClass = theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
-  const textMutedClass = theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
-  const sectionBorderClass = theme === 'dark' ? 'border-white/5' : 'border-slate-200/60'
-  const cardBgClass = theme === 'dark' ? 'bg-slate-950/40 border-white/5' : 'bg-white border-slate-200/60 shadow-md'
+  const catColor = CATEGORY_COLORS[post.category] || primary
+  const relatedPosts = BLOG_POSTS.filter((p) => post.related.includes(p.slug))
 
-  // JSON-LD Schema
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -49,155 +65,125 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
     'description': post.description,
     'image': `https://callpilot.ai${post.featuredImage}`,
     'datePublished': post.publishedAt,
-    'author': {
-      '@type': 'Organization',
-      'name': 'CallPilot AI',
-      'url': 'https://callpilot.ai'
-    },
-    'mainEntityOfPage': {
-      '@type': 'WebPage',
-      '@id': `https://callpilot.ai/blog/${post.slug}`
-    }
+    'author': { '@type': 'Organization', 'name': 'CallPilot AI', 'url': 'https://callpilot.ai' },
+    'mainEntityOfPage': { '@type': 'WebPage', '@id': `https://callpilot.ai/blog/${post.slug}` },
   }
 
-  // Related articles lookup
-  const relatedPosts = BLOG_POSTS.filter((p) => post.related.includes(p.slug))
-
   return (
-    <div className={`min-h-screen ${bgClass} flex flex-col font-sans transition-colors duration-300 relative`}>
-      
-      {/* Dynamic JSON-LD Structured Data Schema Insertion */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+    <div className={`min-h-screen ${bg} ${fg} flex flex-col font-sans transition-colors duration-200`}
+      data-theme={isDark ? 'dark' : undefined}
+    >
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      {/* Header */}
-      <header className={`sticky top-0 z-50 glass border-b ${headerClass} py-4 px-6 md:px-12 flex items-center justify-between`}>
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-              <Cpu className="w-5 h-5 text-slate-950 stroke-[2.5]" />
-            </div>
-            <span className={`text-xl font-bold tracking-tight ${textTitleClass}`}>
-              CallPilot<span className="text-cyan-500">.AI</span>
+      <GoogleNav activePage="blog" theme={theme} toggleTheme={toggleTheme} />
+
+      {/* Article header */}
+      <section className="py-14 px-6" style={{ background: catColor + '10' }}>
+        <div className="max-w-3xl mx-auto">
+          <Link href="/blog"
+            className="inline-flex items-center gap-2 text-sm font-medium mb-8 transition-colors"
+            style={{ color: catColor }}
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Blog
+          </Link>
+
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-xs font-semibold px-3 py-1 rounded-full text-white"
+              style={{ background: catColor }}>
+              {post.category}
             </span>
-          </Link>
-        </div>
-
-        <nav className={`hidden md:flex items-center gap-8 text-sm font-medium ${textDescClass}`}>
-          <Link href="/features" className="hover:text-cyan-500 transition-colors">Features</Link>
-          <Link href="/pricing" className="hover:text-cyan-500 transition-colors">Pricing</Link>
-          <Link href="/blog" className="hover:text-cyan-500 transition-colors">Blog</Link>
-        </nav>
-
-        <div className="flex items-center gap-4">
-          <button
-            onClick={toggleTheme}
-            className={`p-2 rounded-lg border transition-all cursor-pointer ${
-              theme === 'dark' 
-                ? 'border-white/10 hover:bg-white/5 text-cyan-400' 
-                : 'border-slate-200 hover:bg-slate-100 text-cyan-600'
-            }`}
-            title="Toggle Theme"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-          <Link href="/login" className={`text-sm font-medium hover:text-cyan-500 transition-colors ${textDescClass}`}>
-            Sign In
-          </Link>
-          <Link
-            href="/signup"
-            className="bg-gradient-to-tr from-cyan-400 to-indigo-500 hover:from-cyan-300 hover:to-indigo-400 text-slate-950 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-cyan-500/20 hover:scale-[1.03]"
-          >
-            Connect Node
-          </Link>
-        </div>
-      </header>
-
-      {/* Content */}
-      <main className="flex-grow z-10 relative py-16 px-6 max-w-3xl mx-auto w-full">
-        <Link href="/blog" className="inline-flex items-center gap-2 text-cyan-500 hover:text-cyan-400 text-xs font-bold mb-8">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Blog Hub
-        </Link>
-
-        {/* Heading */}
-        <article className="space-y-6">
-          <div className="flex items-center gap-4 text-xs font-bold">
-            <span className="text-cyan-500 uppercase tracking-widest">{post.category}</span>
-            <span className={textMutedClass}>&bull;</span>
-            <span className={textMutedClass}>{post.publishedAt}</span>
-            <span className={textMutedClass}>&bull;</span>
-            <span className={textMutedClass}>{post.readTime}</span>
+            <span className={`flex items-center gap-1 text-xs ${muted}`}>
+              <Clock className="w-3.5 h-3.5" /> {post.readTime || '5 min read'}
+            </span>
+            <span className={`text-xs ${muted}`}>{post.publishedAt}</span>
           </div>
 
-          <h1 className={`text-3xl md:text-5xl font-black ${textTitleClass} leading-tight`}>
+          <h1 className={`text-3xl md:text-4xl font-bold leading-tight mb-5 ${fg}`}>
             {post.title}
           </h1>
+          <p className={`text-lg leading-relaxed ${muted}`}>{post.description}</p>
+        </div>
+      </section>
 
-          {/* Featured Image Placeholder */}
-          <div className={`w-full aspect-[21/9] rounded-xl overflow-hidden flex items-center justify-center border relative ${
-            theme === 'dark' ? 'bg-slate-900/50 border-white/5' : 'bg-slate-100 border-slate-200'
-          }`}>
-            <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 to-indigo-500/10 opacity-60" />
-            <span className={`text-[10px] font-bold uppercase tracking-widest relative z-10 ${textMutedClass}`}>
-              Featured Image Placeholder: {post.featuredImage}
-            </span>
-          </div>
+      {/* Featured image placeholder */}
+      <div className="max-w-3xl mx-auto w-full px-6 mt-8">
+        <div className="w-full aspect-[21/9] rounded-2xl overflow-hidden flex items-center justify-center"
+          style={{ background: `linear-gradient(135deg, ${catColor}cc 0%, ${catColor}55 100%)` }}
+        >
+          <span className="text-white/70 text-sm font-medium">{post.title}</span>
+        </div>
+      </div>
 
-          {/* Article main body */}
-          <div 
-            className={`prose prose-sm max-w-none text-xs leading-relaxed space-y-6 pt-6 ${
-              theme === 'dark' ? 'prose-invert text-slate-300' : 'text-slate-700'
-            }`}
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+      {/* Article body */}
+      <main className="py-14 px-6 max-w-3xl mx-auto w-full flex-grow">
+        <article
+          className={`prose prose-base max-w-none leading-relaxed ${
+            isDark ? 'prose-invert text-[#bdc1c6]' : 'text-[#3c4043]'
+          }`}
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
 
-          {/* FAQ schema inside article */}
-          {post.faqs.length > 0 && (
-            <div className={`p-8 rounded-xl border mt-12 space-y-6 ${cardBgClass}`}>
-              <h3 className={`text-base font-bold ${textTitleClass}`}>Frequently Asked Questions</h3>
-              <div className="space-y-4">
-                {post.faqs.map((faq, fidx) => (
-                  <div key={fidx} className="space-y-1.5 text-xs">
-                    <span className={`block font-bold ${textTitleClass}`}>{faq.q}</span>
-                    <span className={`block ${textDescClass}`}>{faq.a}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </article>
-
-        {/* Related Posts Section */}
-        {relatedPosts.length > 0 && (
-          <section className={`mt-16 pt-12 border-t ${sectionBorderClass} space-y-6`}>
-            <h3 className={`text-lg font-bold ${textTitleClass}`}>Related Articles</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {relatedPosts.map((related, rIdx) => (
-                <div key={rIdx} className={`p-6 rounded-xl border ${cardBgClass} space-y-3`}>
-                  <span className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest">{related.category}</span>
-                  <h4 className={`text-sm font-bold ${textTitleClass} hover:text-cyan-500 transition-colors`}>
-                    <Link href={`/blog/${related.slug}`}>{related.title}</Link>
-                  </h4>
-                  <p className={`${textMutedClass} text-[11px] leading-relaxed line-clamp-2`}>{related.description}</p>
+        {/* FAQs */}
+        {post.faqs.length > 0 && (
+          <div className={`mt-14 p-8 rounded-2xl border ${cardBg}`}>
+            <h3 className={`text-xl font-bold mb-6 ${fg}`}>Frequently asked questions</h3>
+            <div className="space-y-5">
+              {post.faqs.map((faq, fidx) => (
+                <div key={fidx} className={`p-5 rounded-xl border ${isDark ? 'bg-[#1e1e1e] border-[#3c4043]' : 'bg-white border-[#dadce0]'}`}>
+                  <p className={`text-sm font-semibold mb-1.5 ${fg}`}>{faq.q}</p>
+                  <p className={`text-sm leading-relaxed ${muted}`}>{faq.a}</p>
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Related posts */}
+        {relatedPosts.length > 0 && (
+          <section className={`mt-14 pt-10 border-t ${border}`}>
+            <h3 className={`text-xl font-bold mb-6 ${fg}`}>Related articles</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {relatedPosts.map((related, rIdx) => {
+                const relColor = CATEGORY_COLORS[related.category] || primary
+                return (
+                  <Link key={rIdx} href={`/blog/${related.slug}`}
+                    className={`group p-5 rounded-2xl border hover:shadow-md transition-all flex flex-col gap-3 ${isDark ? 'bg-[#2d2d2d] border-[#3c4043]' : 'bg-white border-[#dadce0]'}`}
+                  >
+                    <span className="text-xs font-semibold" style={{ color: relColor }}>{related.category}</span>
+                    <h4 className={`text-sm font-semibold leading-snug group-hover:underline ${fg}`}>{related.title}</h4>
+                    <p className={`text-xs leading-relaxed line-clamp-2 ${muted}`}>{related.description}</p>
+                    <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: relColor }}>
+                      Read more <ArrowRight className="w-3 h-3" />
+                    </span>
+                  </Link>
+                )
+              })}
+            </div>
           </section>
         )}
+
+        {/* CTA */}
+        <div className="mt-14 p-10 rounded-2xl text-center"
+          style={{ background: isDark ? 'linear-gradient(135deg, #1a3a5c, #1e2d1e)' : `linear-gradient(135deg, ${catColor}, #0d652d)` }}
+        >
+          <h3 className="text-xl font-bold text-white mb-3">Start auditing your calls with AI</h3>
+          <p className="text-white/80 text-sm mb-6">No credit card required. 14-day free trial.</p>
+          <Link href="/signup"
+            className="inline-flex items-center gap-2 bg-white font-semibold text-sm px-6 py-3 rounded-full hover:shadow-lg transition-all"
+            style={{ color: '#1a73e8' }}
+          >
+            Get started free <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </main>
 
-      {/* Footer */}
-      <footer className={`border-t ${sectionBorderClass} py-8 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${textMutedClass}`}>
-        <p>&copy; {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
+      <footer className={`border-t py-8 px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${muted} ${border}`}>
+        <p>© {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
         <div className="flex gap-6">
-          <Link href="/privacy" className="hover:text-cyan-500">Privacy Policy</Link>
-          <Link href="/terms" className="hover:text-cyan-500">Terms of Service</Link>
+          <Link href="/privacy" className="hover:underline">Privacy</Link>
+          <Link href="/terms" className="hover:underline">Terms</Link>
         </div>
       </footer>
-
     </div>
   )
 }

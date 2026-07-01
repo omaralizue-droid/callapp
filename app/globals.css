@@ -34,131 +34,201 @@
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
-  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  
-  --font-sans: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --font-sans: "Google Sans", "Inter", "Roboto", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+/* ================================
+   GOOGLE BRAND COLOR TOKENS
+   ================================ */
+
+/* Default = Light (Google's standard) */
 :root {
-  --background: 224 71% 4%;
-  --foreground: 213 31% 91%;
-  --card: 224 71% 4%;
-  --card-foreground: 213 31% 91%;
-  --popover: 224 71% 4%;
-  --popover-foreground: 215 20.2% 65.1%;
-  
-  --primary: 217 89% 61%; /* Google Blue: #4285F4 */
-  --primary-foreground: 222.2 47.4% 11.2%;
-  
-  --secondary: 145 63% 44%; /* Google Green: #34A853 */
-  --secondary-foreground: 210 40% 98%;
-  
-  --muted: 223 47% 11%;
-  --muted-foreground: 215.4 16.3% 56.9%;
-  
-  --accent: 223 47% 11%;
-  --accent-foreground: 210 40% 98%;
-  
-  --destructive: 5 81% 56%; /* Google Red: #EA4335 */
-  --destructive-foreground: 210 40% 98%;
-  
-  --border: 223 47% 14%;
-  --input: 223 47% 14%;
-  --ring: 217 89% 61%;
-  
-  --radius: 0.75rem;
+  /* Google White Surface System */
+  --background: 0 0% 100%;           /* #ffffff */
+  --foreground: 220 9% 13%;          /* #202124 */
+  --card: 210 17% 98%;               /* #f8f9fa */
+  --card-foreground: 220 9% 13%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 9% 13%;
+
+  /* Google Blue (Primary) */
+  --primary: 214 89% 51%;            /* #1a73e8 */
+  --primary-foreground: 0 0% 100%;   /* white text on blue */
+
+  /* Google Green (Secondary) */
+  --secondary: 137 72% 37%;          /* #34a853 */
+  --secondary-foreground: 0 0% 100%;
+
+  /* Muted — Google's #f1f3f4 surface */
+  --muted: 210 17% 95%;
+  --muted-foreground: 215 14% 40%;   /* #5f6368 */
+
+  /* Accent — light blue surface #e8f0fe */
+  --accent: 219 88% 96%;
+  --accent-foreground: 214 89% 44%;
+
+  /* Google Red (Destructive) */
+  --destructive: 4 90% 58%;          /* #ea4335 */
+  --destructive-foreground: 0 0% 100%;
+
+  /* Google Border */
+  --border: 216 12% 86%;             /* #dadce0 */
+  --input: 216 12% 86%;
+  --ring: 214 89% 51%;
+
+  --radius: 0.5rem;
 }
 
-.light {
-  --background: 0 0% 100%;
-  --foreground: 224 71% 4%;
-  --card: 0 0% 100%;
-  --card-foreground: 224 71% 4%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 224 71% 4%;
-  
-  --primary: 217 89% 51%; /* Google Blue: #1a73e8 */
-  --primary-foreground: 210 40% 98%;
-  
-  --secondary: 145 63% 40%; /* Google Green */
-  --secondary-foreground: 210 40% 98%;
-  
-  --muted: 220 14.3% 95.9%;
-  --muted-foreground: 220 8.9% 46.1%;
-  
-  --accent: 220 14.3% 95.9%;
-  --accent-foreground: 224 71% 4%;
-  
-  --destructive: 5 81% 56%; /* Google Red */
-  --destructive-foreground: 210 40% 98%;
-  
-  --border: 220 13% 91%;
-  --input: 220 13% 91%;
-  --ring: 217 89% 51%;
+/* Dark Theme — Google's Dark Surface System */
+.dark, [data-theme="dark"] {
+  --background: 220 8% 12%;          /* #1e1e1e */
+  --foreground: 213 27% 91%;         /* #e8eaed */
+  --card: 220 8% 18%;                /* #2d2d2d */
+  --card-foreground: 213 27% 91%;
+  --popover: 220 8% 18%;
+  --popover-foreground: 213 27% 91%;
+
+  /* Google Blue (dark) */
+  --primary: 214 75% 76%;            /* #8ab4f8 */
+  --primary-foreground: 220 9% 13%;  /* dark text on light blue */
+
+  /* Google Green (dark) */
+  --secondary: 140 44% 65%;          /* #81c995 */
+  --secondary-foreground: 220 9% 13%;
+
+  --muted: 220 8% 22%;
+  --muted-foreground: 215 10% 62%;   /* #9aa0a6 */
+
+  --accent: 214 56% 26%;
+  --accent-foreground: 214 75% 76%;
+
+  /* Google Red (dark) */
+  --destructive: 4 84% 73%;          /* #f28b82 */
+  --destructive-foreground: 220 9% 13%;
+
+  --border: 215 8% 24%;              /* #3c4043 */
+  --input: 215 8% 24%;
+  --ring: 214 75% 76%;
 }
 
 @layer base {
   * {
-    border-color: var(--border);
+    border-color: hsl(var(--border));
   }
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* Glassmorphism Classes */
-.glass {
-  background: rgba(11, 15, 25, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+/* ================================
+   GOOGLE COMPONENT CLASSES
+   ================================ */
+
+/* Google-style elevated card */
+.g-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  transition: box-shadow 0.2s ease;
+}
+.g-card:hover {
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
 }
 
-.glass-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+/* Google primary filled button */
+.g-btn-primary {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.625rem 1.5rem;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.g-btn-primary:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 2px 6px rgba(26, 115, 232, 0.4);
 }
 
-.glass-card:hover {
-  border-color: rgba(6, 182, 212, 0.3);
-  box-shadow: 0 8px 32px 0 rgba(6, 182, 212, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* Google outlined button */
+.g-btn-outlined {
+  background: transparent;
+  color: hsl(var(--primary));
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.625rem 1.5rem;
+  border-radius: 100px;
+  border: 1px solid hsl(var(--border));
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.g-btn-outlined:hover {
+  background: hsl(var(--accent));
 }
 
-/* Neon Glow Animations & Borders */
-.glow-cyan {
-  box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+/* Google surface badge */
+.g-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
 }
 
-.glow-purple {
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+/* Google nav link */
+.g-nav-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  padding: 0.25rem 0;
+  position: relative;
+  transition: color 0.15s;
+}
+.g-nav-link:hover {
+  color: hsl(var(--primary));
+}
+.g-nav-link.active {
+  color: hsl(var(--primary));
+  font-weight: 600;
 }
 
-.glow-text-cyan {
-  text-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
+/* Divider */
+.g-divider {
+  height: 1px;
+  background: hsl(var(--border));
+  width: 100%;
 }
+
+/* Google icon badge colors */
+.g-icon-blue   { color: #1a73e8; background: #e8f0fe; }
+.g-icon-red    { color: #ea4335; background: #fce8e6; }
+.g-icon-yellow { color: #f9ab00; background: #fef7e0; }
+.g-icon-green  { color: #34a853; background: #e6f4ea; }
+
+.dark .g-icon-blue   { color: #8ab4f8; background: rgba(138, 180, 248, 0.12); }
+.dark .g-icon-red    { color: #f28b82; background: rgba(242, 139, 130, 0.12); }
+.dark .g-icon-yellow { color: #fdd663; background: rgba(253, 214, 99, 0.12); }
+.dark .g-icon-green  { color: #81c995; background: rgba(129, 201, 149, 0.12); }
 
 /* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: hsl(var(--background));
-}
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground));
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: hsl(var(--background)); }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
 
 /* Keyframes */
 @keyframes accordion-down {
@@ -169,3 +239,14 @@
   from { height: var(--radix-accordion-content-height); }
   to { height: 0; }
 }
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-fade-in-up { animation: fade-in-up 0.5s ease both; }
+.animate-fade-in    { animation: fade-in 0.4s ease both; }

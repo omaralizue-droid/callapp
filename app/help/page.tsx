@@ -2,10 +2,27 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Cpu, Sun, Moon } from 'lucide-react'
+import { MessageCircle, BookOpen, Zap, ArrowRight } from 'lucide-react'
+import GoogleNav from '@/components/landing/GoogleNav'
+
+const FAQS = [
+  { q: 'How do I upload a call recording?',         a: 'Navigate to the Upload page, drag and drop your audio file (MP3 or WAV), select the agent, and click Analyze. Results appear within 30 seconds.' },
+  { q: 'What audio formats are supported?',         a: 'We support MP3, WAV, M4A, and OGG. Maximum file size is 500MB per upload. For longer recordings, split them or use our streaming API.' },
+  { q: 'How do I invite team members?',             a: 'Go to Settings → Team → Invite Members. Enter their email and select a role (Reviewer, Agent, or Admin). They\'ll receive an invite via email.' },
+  { q: 'Can I export my data?',                     a: 'Yes. All call scores, transcripts, and coaching cards can be exported in CSV or JSON format from your Reports page.' },
+  { q: 'How do I set up custom QA rubrics?',        a: 'Go to Settings → QA Rubrics → New Rubric. Define your compliance rules, keyword requirements, and scoring weights. Apply the rubric to any call upload.' },
+  { q: 'What if I need to cancel my subscription?', a: 'You can cancel anytime from Settings → Billing → Cancel Plan. Your access continues until the end of your billing period.' },
+]
+
+const CATEGORIES = [
+  { icon: <Zap className="w-5 h-5" />,           color: 'g-icon-blue',   label: 'Getting started' },
+  { icon: <BookOpen className="w-5 h-5" />,       color: 'g-icon-green',  label: 'Billing & plans' },
+  { icon: <MessageCircle className="w-5 h-5" />,  color: 'g-icon-red',    label: 'Technical issues' },
+]
 
 export default function HelpPage() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [theme, setTheme] = useState<'dark' | 'light'>('light')
+  const [open, setOpen] = useState<number | null>(null)
 
   useEffect(() => {
     const saved = localStorage.getItem('landing-theme') as 'dark' | 'light'
@@ -18,102 +35,92 @@ export default function HelpPage() {
     localStorage.setItem('landing-theme', next)
   }
 
-  const bgClass = theme === 'dark' ? 'bg-[#060813] text-slate-100' : 'bg-slate-50 text-slate-800'
-  const headerClass = theme === 'dark' ? 'bg-slate-950/80 border-white/5' : 'bg-white/80 border-slate-200/60 shadow-sm'
-  const textTitleClass = theme === 'dark' ? 'text-white' : 'text-slate-900'
-  const textDescClass = theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
-  const textMutedClass = theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
-  const sectionBorderClass = theme === 'dark' ? 'border-white/5' : 'border-slate-200/60'
-
-  const commonTopics = [
-    { q: 'How do I add a new agent user?', a: 'Navigate to the dashboard Agents Directory and click "Invite Agent". Enter their email, first name, last name, and role. They will receive an email invite to configure their password.' },
-    { q: 'How does Gemini score call compliance?', a: 'Gemini analyzes the audio buffer and checks it against active QA rubric items, outputting yes/no metrics, detailed explanations, and an aggregate score out of 100.' },
-    { q: 'What telephonies can I connect?', a: 'We support Genesys Cloud, Zoom Phone, Twilio SIP, and RingCentral call exports directly from your supervisor dashboards.' }
-  ]
+  const isDark  = theme === 'dark'
+  const bg      = isDark ? 'bg-[#1e1e1e]' : 'bg-white'
+  const fg      = isDark ? 'text-[#e8eaed]' : 'text-[#202124]'
+  const muted   = isDark ? 'text-[#9aa0a6]' : 'text-[#5f6368]'
+  const border  = isDark ? 'border-[#3c4043]' : 'border-[#dadce0]'
+  const cardBg  = isDark ? 'bg-[#2d2d2d] border-[#3c4043]' : 'bg-white border-[#dadce0]'
+  const surface = isDark ? 'bg-[#252525]' : 'bg-[#f8f9fa]'
+  const primary = isDark ? '#8ab4f8' : '#1a73e8'
 
   return (
-    <div className={`min-h-screen ${bgClass} flex flex-col font-sans transition-colors duration-300 relative`}>
-      
-      {/* Header */}
-      <header className={`sticky top-0 z-50 glass border-b ${headerClass} py-4 px-6 md:px-12 flex items-center justify-between`}>
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-              <Cpu className="w-5 h-5 text-slate-950 stroke-[2.5]" />
+    <div className={`min-h-screen ${bg} ${fg} flex flex-col font-sans transition-colors duration-200`}
+      data-theme={isDark ? 'dark' : undefined}
+    >
+      <GoogleNav theme={theme} toggleTheme={toggleTheme} />
+
+      <section className={`py-20 px-6 text-center ${surface}`}>
+        <div className="max-w-3xl mx-auto">
+          <p className="text-sm font-semibold mb-3" style={{ color: primary }}>Help Center</p>
+          <h1 className={`text-4xl md:text-5xl font-bold mb-5 ${fg}`}>How can we help?</h1>
+          <p className={`text-lg ${muted}`}>Find answers to common questions or contact our support team.</p>
+        </div>
+      </section>
+
+      {/* Category cards */}
+      <section className="py-14 px-6">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-5">
+          {CATEGORIES.map((cat, idx) => (
+            <div key={idx} className={`p-6 rounded-2xl border text-center hover:shadow-md transition-all cursor-pointer ${cardBg}`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4 ${cat.color}`}>
+                {cat.icon}
+              </div>
+              <h3 className={`text-sm font-semibold ${fg}`}>{cat.label}</h3>
             </div>
-            <span className={`text-xl font-bold tracking-tight ${textTitleClass}`}>
-              CallPilot<span className="text-cyan-500">.AI</span>
-            </span>
-          </Link>
+          ))}
         </div>
+      </section>
 
-        <nav className={`hidden md:flex items-center gap-8 text-sm font-medium ${textDescClass}`}>
-          <Link href="/features" className="hover:text-cyan-500 transition-colors">Features</Link>
-          <Link href="/pricing" className="hover:text-cyan-500 transition-colors">Pricing</Link>
-          <Link href="/blog" className="hover:text-cyan-500 transition-colors">Blog</Link>
-        </nav>
-
-        <div className="flex items-center gap-4">
-          <button
-            onClick={toggleTheme}
-            className={`p-2 rounded-lg border transition-all cursor-pointer ${
-              theme === 'dark' 
-                ? 'border-white/10 hover:bg-white/5 text-cyan-400' 
-                : 'border-slate-200 hover:bg-slate-100 text-cyan-600'
-            }`}
-            title="Toggle Theme"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-          <Link href="/login" className={`text-sm font-medium hover:text-cyan-500 transition-colors ${textDescClass}`}>
-            Sign In
-          </Link>
-          <Link
-            href="/signup"
-            className="bg-gradient-to-tr from-cyan-400 to-indigo-500 hover:from-cyan-300 hover:to-indigo-400 text-slate-950 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-cyan-500/20 hover:scale-[1.03]"
-          >
-            Connect Node
-          </Link>
-        </div>
-      </header>
-
-      {/* Content */}
-      <main className="flex-grow z-10 relative py-20 px-6 max-w-4xl mx-auto space-y-12">
-        <div className="text-center mb-16">
-          <span className="text-xs font-bold text-cyan-500 tracking-wider uppercase mb-3 block">Support Center</span>
-          <h1 className={`text-4xl md:text-5xl font-black ${textTitleClass} mb-4`}>
-            Help Center
-          </h1>
-          <p className={`${textDescClass} text-lg max-w-2xl mx-auto`}>
-            Find step-by-step guides, troubleshooting help, and common integration tutorials to configure your call pilot workspace.
-          </p>
-        </div>
-
-        {/* FAQs list */}
-        <div className="space-y-8 max-w-2xl mx-auto">
-          <h2 className={`text-xl font-bold ${textTitleClass} border-b ${sectionBorderClass} pb-2`}>
-            Frequently Searched Topics
-          </h2>
-          <div className="space-y-6">
-            {commonTopics.map((topic, idx) => (
-              <div key={idx} className="space-y-1">
-                <h3 className={`text-sm font-bold ${textTitleClass}`}>{topic.q}</h3>
-                <p className={`${textDescClass} text-xs leading-relaxed`}>{topic.a}</p>
+      {/* FAQ Accordion */}
+      <section className={`py-16 px-6 ${surface}`}>
+        <div className="max-w-3xl mx-auto">
+          <h2 className={`text-3xl font-bold mb-10 ${fg}`}>Frequently asked questions</h2>
+          <div className="space-y-3">
+            {FAQS.map((faq, idx) => (
+              <div key={idx}
+                className={`rounded-2xl border overflow-hidden ${cardBg}`}
+              >
+                <button
+                  onClick={() => setOpen(open === idx ? null : idx)}
+                  className={`w-full text-left px-6 py-5 flex items-center justify-between gap-4 transition-colors ${fg}`}
+                >
+                  <span className="text-sm font-semibold">{faq.q}</span>
+                  <span className={`text-lg leading-none transition-transform ${open === idx ? 'rotate-45' : ''}`}
+                    style={{ color: primary }}>+</span>
+                </button>
+                {open === idx && (
+                  <div className={`px-6 pb-5 text-sm leading-relaxed ${muted}`}>{faq.a}</div>
+                )}
               </div>
             ))}
           </div>
         </div>
-      </main>
+      </section>
 
-      {/* Footer */}
-      <footer className={`border-t ${sectionBorderClass} py-8 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${textMutedClass}`}>
-        <p>&copy; {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
+      {/* Still need help */}
+      <section className="py-16 px-6">
+        <div className="max-w-3xl mx-auto text-center rounded-2xl p-12"
+          style={{ background: isDark ? 'linear-gradient(135deg, #1a3a5c, #1e2d1e)' : 'linear-gradient(135deg, #1a73e8, #0d652d)' }}
+        >
+          <h2 className="text-2xl font-bold text-white mb-3">Still need help?</h2>
+          <p className="text-white/80 text-sm mb-6">Our support team responds within 1 business day.</p>
+          <Link href="/contact"
+            className="inline-flex items-center gap-2 bg-white font-semibold text-sm px-7 py-3 rounded-full hover:shadow-lg transition-all"
+            style={{ color: '#1a73e8' }}
+          >
+            Contact support <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </section>
+
+      <footer className={`border-t py-8 px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${muted} ${border}`}>
+        <p>© {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
         <div className="flex gap-6">
-          <Link href="/privacy" className="hover:text-cyan-500">Privacy Policy</Link>
-          <Link href="/terms" className="hover:text-cyan-500">Terms of Service</Link>
+          <Link href="/privacy" className="hover:underline">Privacy</Link>
+          <Link href="/terms" className="hover:underline">Terms</Link>
         </div>
       </footer>
-
     </div>
   )
 }

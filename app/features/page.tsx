@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Cpu, ShieldCheck, TrendingUp, Sparkles, FileSpreadsheet, ArrowRight, Sun, Moon, Check } from 'lucide-react'
+import { ShieldCheck, TrendingUp, Sparkles, FileSpreadsheet, Check, ArrowRight } from 'lucide-react'
+import GoogleNav from '@/components/landing/GoogleNav'
 
 export default function FeaturesPage() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [theme, setTheme] = useState<'dark' | 'light'>('light')
 
   useEffect(() => {
     const saved = localStorage.getItem('landing-theme') as 'dark' | 'light'
@@ -18,125 +19,97 @@ export default function FeaturesPage() {
     localStorage.setItem('landing-theme', next)
   }
 
-  const bgClass = theme === 'dark' ? 'bg-[#060813] text-slate-100' : 'bg-slate-50 text-slate-800'
-  const headerClass = theme === 'dark' ? 'bg-slate-950/80 border-white/5' : 'bg-white/80 border-slate-200/60 shadow-sm'
-  const textTitleClass = theme === 'dark' ? 'text-white' : 'text-slate-900'
-  const textDescClass = theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
-  const textMutedClass = theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
-  const sectionBorderClass = theme === 'dark' ? 'border-white/5' : 'border-slate-200/60'
+  const isDark  = theme === 'dark'
+  const bg      = isDark ? 'bg-[#1e1e1e]' : 'bg-white'
+  const fg      = isDark ? 'text-[#e8eaed]' : 'text-[#202124]'
+  const muted   = isDark ? 'text-[#9aa0a6]' : 'text-[#5f6368]'
+  const border  = isDark ? 'border-[#3c4043]' : 'border-[#dadce0]'
+  const cardBg  = isDark ? 'bg-[#2d2d2d] border-[#3c4043]' : 'bg-white border-[#dadce0]'
+  const surface = isDark ? 'bg-[#252525]' : 'bg-[#f8f9fa]'
+  const primary = isDark ? '#8ab4f8' : '#1a73e8'
 
   const featuresList = [
     {
       title: 'Automated QA Checklists',
-      icon: <ShieldCheck className="w-6 h-6 text-cyan-500" />,
+      icon: <ShieldCheck className="w-6 h-6" />,
+      color: 'g-icon-blue',
       desc: 'No more manual spot-checking. Audit 100% of outbound or inbound support calls against exact rules automatically. Verify call disclosures, brand compliance, and script guidelines instantly.',
-      details: ['Keyword compliance verification', 'Disclosures & terms checks', 'Custom grading rubrics scoreboards', 'Multi-channel caller splitting']
+      details: ['Keyword compliance verification', 'Disclosures & terms checks', 'Custom grading rubrics', 'Multi-channel caller splitting'],
     },
     {
       title: 'Sentiment & Speech Analytics',
-      icon: <TrendingUp className="w-6 h-6 text-cyan-500" />,
+      icon: <TrendingUp className="w-6 h-6" />,
+      color: 'g-icon-red',
       desc: 'Trace voice dynamics, speaker speed, silences, and interruptions. CallPilot maps customer satisfaction fluctuations and notifies supervisors of customer escalation triggers in real-time.',
-      details: ['Interruptions count analytics', 'Silence & dead-air logs', 'Frustration pitch analysis', 'Overall sentiment averages']
+      details: ['Interruption count analytics', 'Silence & dead-air logs', 'Frustration pitch analysis', 'Overall sentiment averages'],
     },
     {
       title: 'AI-Generated Coaching Cards',
-      icon: <Sparkles className="w-6 h-6 text-cyan-500" />,
+      icon: <Sparkles className="w-6 h-6" />,
+      color: 'g-icon-yellow',
       desc: 'Empower agent learning loops with immediate, constructive AI feedback. Agents receive dynamic dashboard tips detailing exact transcript timings to adjust tone or objections.',
-      details: ['Strengths & improvements flags', 'Actionable wording suggestions', 'Context-aware objection support', 'Direct review portal override']
+      details: ['Strengths & improvement flags', 'Actionable wording suggestions', 'Context-aware objection support', 'Direct review portal override'],
     },
     {
       title: 'One-Click CRM Structuring',
-      icon: <FileSpreadsheet className="w-6 h-6 text-cyan-500" />,
-      desc: 'Turn long call recordings into structured data logs automatically. CallPilot exports structured summaries, customer resolutions, purposing, and follow-up items straight to Salesforce or HubSpot.',
-      details: ['JSON & CSV schema models', 'Auto contact records updates', 'Wrap-up time reduction', 'Multi-platform integrations']
-    }
+      icon: <FileSpreadsheet className="w-6 h-6" />,
+      color: 'g-icon-green',
+      desc: 'Turn long call recordings into structured data logs automatically. CallPilot exports structured summaries, customer resolutions, and follow-up items straight to Salesforce or HubSpot.',
+      details: ['JSON & CSV schema models', 'Auto contact record updates', 'Wrap-up time reduction', 'Multi-platform integrations'],
+    },
   ]
 
   const faqs = [
-    { q: 'How accurate is the compliance grading?', a: 'By utilizing multi-modal LLM evaluation pipelines, CallPilot scores call recordings with over 95% Word Error Rate alignment to human auditors.' },
-    { q: 'Is customer call data secure?', a: 'Yes. CallPilot complies with SOC2 Type II guidelines. All audio records and transcripts are encrypted at rest, and credit card numbers are scrubbed automatically.' }
+    { q: 'How accurate is the compliance grading?', a: 'By utilizing multi-modal LLM evaluation pipelines, CallPilot scores call recordings with over 95% alignment to human auditors — verified across 3.5M+ scored calls.' },
+    { q: 'Is customer call data secure?', a: 'Yes. CallPilot complies with SOC2 Type II. All audio records and transcripts are encrypted at rest, and credit card numbers are automatically scrubbed.' },
+    { q: 'Can I customize the grading rubric?', a: 'Absolutely. Professional and Enterprise plans allow fully custom compliance rubrics tailored to your industry scripts, disclosure requirements, and brand guidelines.' },
+    { q: 'Which CRM platforms do you support?', a: 'We natively support Salesforce and HubSpot. Additional integrations via Zapier and REST API are available on all plans.' },
   ]
 
   return (
-    <div className={`min-h-screen ${bgClass} flex flex-col font-sans transition-colors duration-300 relative`}>
-      
-      {/* Header */}
-      <header className={`sticky top-0 z-50 glass border-b ${headerClass} py-4 px-6 md:px-12 flex items-center justify-between`}>
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-              <Cpu className="w-5 h-5 text-slate-950 stroke-[2.5]" />
-            </div>
-            <span className={`text-xl font-bold tracking-tight ${textTitleClass}`}>
-              CallPilot<span className="text-cyan-500">.AI</span>
-            </span>
-          </Link>
-        </div>
+    <div className={`min-h-screen ${bg} ${fg} flex flex-col font-sans transition-colors duration-200`}
+      data-theme={isDark ? 'dark' : undefined}
+    >
+      <GoogleNav activePage="features" theme={theme} toggleTheme={toggleTheme} />
 
-        <nav className={`hidden md:flex items-center gap-8 text-sm font-medium ${textDescClass}`}>
-          <Link href="/features" className="text-cyan-500 font-semibold">Features</Link>
-          <Link href="/pricing" className="hover:text-cyan-500 transition-colors">Pricing</Link>
-          <Link href="/blog" className="hover:text-cyan-500 transition-colors">Blog</Link>
-        </nav>
-
-        <div className="flex items-center gap-4">
-          <button
-            onClick={toggleTheme}
-            className={`p-2 rounded-lg border transition-all cursor-pointer ${
-              theme === 'dark' 
-                ? 'border-white/10 hover:bg-white/5 text-cyan-400' 
-                : 'border-slate-200 hover:bg-slate-100 text-cyan-600'
-            }`}
-            title="Toggle Theme"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-          <Link href="/login" className={`text-sm font-medium hover:text-cyan-500 transition-colors ${textDescClass}`}>
-            Sign In
-          </Link>
-          <Link
-            href="/signup"
-            className="bg-gradient-to-tr from-cyan-400 to-indigo-500 hover:from-cyan-300 hover:to-indigo-400 text-slate-950 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-cyan-500/20 hover:scale-[1.03]"
-          >
-            Connect Node
-          </Link>
-        </div>
-      </header>
-
-      {/* Main content */}
-      <main className="flex-grow z-10 relative py-20 px-6 max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <span className="text-xs font-bold text-cyan-500 tracking-wider uppercase mb-3 block">Product Features</span>
-          <h1 className={`text-4xl md:text-5xl font-black ${textTitleClass} leading-tight mb-4`}>
-            Next-Gen Conversation Intelligence
+      {/* Hero */}
+      <section className={`py-20 px-6 text-center ${surface}`}>
+        <div className="max-w-3xl mx-auto">
+          <p className="text-sm font-semibold mb-3" style={{ color: primary }}>Product Features</p>
+          <h1 className={`text-4xl md:text-5xl font-bold mb-5 ${fg}`}>
+            Next-gen conversation intelligence
           </h1>
-          <p className={`${textDescClass} text-lg max-w-2xl mx-auto`}>
-            Audit 100% of support and sales calls. Automatically extract compliance scorecards, coaching cards, and structured notes.
+          <p className={`text-lg max-w-2xl mx-auto mb-8 ${muted}`}>
+            Audit 100% of support and sales calls. Automatically extract compliance scorecards, coaching cards, and structured CRM notes — without lifting a finger.
           </p>
+          <Link href="/signup"
+            className="inline-flex items-center gap-2 text-white font-semibold px-7 py-3 rounded-full transition-all hover:shadow-lg"
+            style={{ background: primary }}
+          >
+            Start for free
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
+      </section>
 
-        {/* Detailed features layout */}
-        <div className="space-y-16">
+      {/* Feature details */}
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto space-y-8">
           {featuresList.map((feat, idx) => (
-            <div 
-              key={idx}
-              className={`p-8 rounded-xl border flex flex-col md:flex-row gap-8 items-start ${
-                theme === 'dark' ? 'bg-slate-950/40 border-white/5' : 'bg-white border-slate-200/60 shadow-lg'
-              }`}
+            <div key={idx}
+              className={`p-8 rounded-2xl border flex flex-col md:flex-row gap-7 items-start hover:shadow-md transition-all ${cardBg}`}
             >
-              <div className={`w-14 h-14 rounded-lg shrink-0 flex items-center justify-center border ${
-                theme === 'dark' ? 'bg-slate-900 border-white/10' : 'bg-slate-50 border-slate-200'
-              }`}>
+              <div className={`w-14 h-14 rounded-2xl shrink-0 flex items-center justify-center ${feat.color}`}>
                 {feat.icon}
               </div>
               <div className="space-y-4 flex-grow">
-                <h2 className={`text-2xl font-bold ${textTitleClass}`}>{feat.title}</h2>
-                <p className={`${textDescClass} leading-relaxed text-sm`}>{feat.desc}</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <h2 className={`text-xl font-semibold ${fg}`}>{feat.title}</h2>
+                <p className={`text-sm leading-relaxed ${muted}`}>{feat.desc}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
                   {feat.details.map((detail, dIdx) => (
-                    <div key={dIdx} className="flex items-center gap-2 text-xs">
-                      <Check className="w-4 h-4 text-cyan-500 shrink-0" />
-                      <span className={textDescClass}>{detail}</span>
+                    <div key={dIdx} className="flex items-center gap-2 text-sm">
+                      <Check className="w-4 h-4 shrink-0" style={{ color: '#34a853' }} />
+                      <span className={muted}>{detail}</span>
                     </div>
                   ))}
                 </div>
@@ -144,47 +117,50 @@ export default function FeaturesPage() {
             </div>
           ))}
         </div>
+      </section>
 
-        {/* FAQ Section */}
-        <section className={`mt-24 pt-16 border-t ${sectionBorderClass}`}>
-          <h2 className={`text-3xl font-bold text-center ${textTitleClass} mb-12`}>Frequently Asked Questions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      {/* FAQ */}
+      <section className={`py-20 px-6 ${surface}`}>
+        <div className="max-w-3xl mx-auto">
+          <h2 className={`text-3xl font-bold text-center mb-12 ${fg}`}>Frequently asked questions</h2>
+          <div className="space-y-6">
             {faqs.map((faq, idx) => (
-              <div key={idx} className="space-y-2">
-                <h3 className={`text-base font-bold ${textTitleClass}`}>{faq.q}</h3>
-                <p className={`${textDescClass} text-xs leading-relaxed`}>{faq.a}</p>
+              <div key={idx} className={`p-6 rounded-2xl border ${cardBg}`}>
+                <h3 className={`text-base font-semibold mb-2 ${fg}`}>{faq.q}</h3>
+                <p className={`text-sm leading-relaxed ${muted}`}>{faq.a}</p>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Action Banner */}
-        <section className={`mt-24 text-center p-12 rounded-xl border ${
-          theme === 'dark' ? 'bg-slate-950/60 border-white/5' : 'bg-white border-slate-200/60 shadow-lg'
-        }`}>
-          <h2 className={`text-3xl font-black ${textTitleClass} mb-4`}>Automate your call quality processes today</h2>
-          <p className={`${textDescClass} text-sm max-w-md mx-auto mb-8`}>
-            Start grading calls, tracking compliance metrics, and coaching agents with AI. No credit card required.
+      {/* CTA */}
+      <section className="py-20 px-6">
+        <div className="max-w-3xl mx-auto text-center rounded-2xl p-14"
+          style={{ background: isDark ? 'linear-gradient(135deg, #1a3a5c, #1e2d1e)' : 'linear-gradient(135deg, #1a73e8, #0d652d)' }}
+        >
+          <h2 className="text-3xl font-bold text-white mb-4">Automate your call quality processes today</h2>
+          <p className="text-white/80 max-w-md mx-auto mb-8">
+            Start grading calls, tracking compliance, and coaching agents with AI. No credit card required.
           </p>
-          <Link
-            href="/signup"
-            className="inline-flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-8 py-4 rounded-lg"
+          <Link href="/signup"
+            className="inline-flex items-center gap-2 bg-white font-semibold text-sm px-8 py-3.5 rounded-full transition-all hover:shadow-lg"
+            style={{ color: '#1a73e8' }}
           >
-            Start Auditing Free
+            Start free trial
             <ArrowRight className="w-4 h-4" />
           </Link>
-        </section>
-      </main>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className={`border-t ${sectionBorderClass} py-8 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${textMutedClass}`}>
-        <p>&copy; {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
+      <footer className={`border-t py-8 px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs ${muted} ${border}`}>
+        <p>© {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
         <div className="flex gap-6">
-          <Link href="/privacy" className="hover:text-cyan-500">Privacy Policy</Link>
-          <Link href="/terms" className="hover:text-cyan-500">Terms of Service</Link>
+          <Link href="/privacy" onMouseEnter={e => (e.currentTarget.style.color = primary)} onMouseLeave={e => (e.currentTarget.style.color = '')} className="transition-colors">Privacy</Link>
+          <Link href="/terms" onMouseEnter={e => (e.currentTarget.style.color = primary)} onMouseLeave={e => (e.currentTarget.style.color = '')} className="transition-colors">Terms</Link>
         </div>
       </footer>
-
     </div>
   )
 }
