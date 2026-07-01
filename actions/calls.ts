@@ -57,6 +57,32 @@ export async function createCallAction(input: CreateCallInput) {
           }
         })
       }
+
+      // Ensure the selected agent exists in the database to avoid foreign key violations
+      if (input.agentId) {
+        const agentProfile = await prisma.user.findUnique({
+          where: { id: input.agentId }
+        })
+        if (!agentProfile) {
+          let agentName = 'Mock Agent'
+          if (input.agentId === 'agent-1') agentName = 'Alex Rodriguez'
+          else if (input.agentId === 'agent-2') agentName = 'Lisa Miller'
+          else if (input.agentId === 'agent-3') agentName = 'David Kim'
+
+          const names = agentName.split(' ')
+          await prisma.user.create({
+            data: {
+              id: input.agentId,
+              email: `${input.agentId}@example.com`,
+              supabaseId: input.agentId,
+              firstName: names[0],
+              lastName: names[1] || '',
+              role: 'AGENT',
+              organizationId: organizationId
+            }
+          })
+        }
+      }
     } catch (e) {
       console.error('Failed to auto-provision mock database records under bypass:', e)
       organizationId = 'dev-org-id'
