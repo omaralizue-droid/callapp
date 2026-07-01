@@ -41,6 +41,17 @@ export async function proxy(request: NextRequest) {
 
   const url = request.nextUrl.clone()
 
+  if (url.pathname === '/dashboard') {
+    url.pathname = '/dashboard/overview'
+    return NextResponse.redirect(url)
+  }
+
+  let rewritten = false
+  if (url.pathname.startsWith('/dashboard/')) {
+    url.pathname = url.pathname.substring(10)
+    rewritten = true
+  }
+
   // Guard dashboard routes (since they reside under root /calls, /coach, etc.)
   const protectedRoutes = ['/calls', '/coach', '/qa', '/overview', '/agents', '/analytics', '/reports', '/settings', '/upload', '/profile']
   const isProtectedRoute = protectedRoutes.some(route => url.pathname.startsWith(route))
@@ -55,9 +66,17 @@ export async function proxy(request: NextRequest) {
   // Redirect authenticated users away from auth pages
   if (url.pathname === '/login' || url.pathname === '/signup') {
     if (user) {
-      url.pathname = '/overview'
+      url.pathname = '/dashboard/overview'
       return NextResponse.redirect(url)
     }
+  }
+
+  if (rewritten) {
+    return NextResponse.rewrite(url, {
+      request: {
+        headers: request.headers,
+      }
+    })
   }
 
   return supabaseResponse
