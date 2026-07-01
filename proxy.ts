@@ -9,7 +9,7 @@ export async function proxy(request: NextRequest) {
   const isDummy = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('your-project-id')
   const token = request.cookies.get('sb-mock-token')?.value
   const user = isDummy
-    ? (token ? { id: token } : null)
+    ? (token ? { id: token, email: 'dev@example.com', name: 'Developer' } : { id: 'dev-user', email: 'dev@example.com', name: 'Developer' })
     : await (async () => {
         try {
           const supabase = createServerClient(

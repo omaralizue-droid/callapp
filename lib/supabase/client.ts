@@ -1,7 +1,7 @@
 import { createBrowserClient } from '@supabase/ssr'
 
 export function createClient() {
-  const isDummy = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('your-project-id')
+  const isDummy = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('your-project-id') || process.env.DEV_AUTH_BYPASS === 'true'
 
   if (isDummy) {
     const getCookie = (name: string) => {

@@ -3,7 +3,7 @@ import { cookies } from 'next/headers'
 import prisma from '@/lib/db'
 
 export async function createClient() {
-  const isDummy = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('your-project-id')
+  const isDummy = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('your-project-id') || process.env.DEV_AUTH_BYPASS === 'true'
 
   if (isDummy) {
     const cookieStore = await cookies()

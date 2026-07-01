@@ -9,6 +9,19 @@ import { redirect } from 'next/navigation'
  * If role is not allowed, redirects to /dashboard/unauthorized.
  */
 export async function assertRole(allowedRoles: Role[]) {
+  // Development bypass: skip auth and role checks when enabled
+  if (process.env.DEV_AUTH_BYPASS === 'true') {
+    // Return a mock admin profile for local development
+    return {
+      id: 'dev-user',
+      email: 'dev@example.com',
+      role: 'admin' as Role,
+      organizationId: null,
+      firstName: 'Developer',
+      lastName: '',
+    };
+  }
+
   const supabase = await createClient()
   const {
     data: { user },
