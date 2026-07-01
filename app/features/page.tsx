@@ -96,9 +96,9 @@ export default function FeaturesPage() {
           </Link>
           <Link
             href="/signup"
-            className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-semibold px-4 py-2 rounded-lg transition-all"
+            className="bg-gradient-to-tr from-cyan-400 to-indigo-500 hover:from-cyan-300 hover:to-indigo-400 text-slate-950 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-cyan-500/20 hover:scale-[1.03]"
           >
-            Get Started
+            Connect Node
           </Link>
         </div>
       </header>
