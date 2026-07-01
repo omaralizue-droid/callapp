@@ -27,14 +27,51 @@ export async function createCallAction(input: CreateCallInput) {
     return { error: 'Authentication required' }
   }
 
-  // Retrieve user's organization
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { organizationId: true },
-  })
+  let organizationId = ''
 
-  if (!dbUser || !dbUser.organizationId) {
-    return { error: 'User does not belong to any organization' }
+  if (process.env.DEV_AUTH_BYPASS !== 'false') {
+    try {
+      let org = await prisma.organization.findFirst()
+      if (!org) {
+        org = await prisma.organization.create({
+          data: {
+            id: 'dev-org-id',
+            name: 'CallPilot Demo',
+            slug: 'callpilot-demo'
+          }
+        })
+      }
+      organizationId = org.id
+
+      const devProfile = await prisma.user.findUnique({
+        where: { id: user.id }
+      })
+      if (!devProfile) {
+        await prisma.user.create({
+          data: {
+            id: user.id,
+            email: user.email || 'omaralizue@gmail.com',
+            supabaseId: user.id,
+            role: 'ADMIN',
+            organizationId: organizationId
+          }
+        })
+      }
+    } catch (e) {
+      console.error('Failed to auto-provision mock database records under bypass:', e)
+      organizationId = 'dev-org-id'
+    }
+  } else {
+    // Retrieve user's organization
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { organizationId: true },
+    })
+
+    if (!dbUser || !dbUser.organizationId) {
+      return { error: 'User does not belong to any organization' }
+    }
+    organizationId = dbUser.organizationId
   }
 
   // Setup Default Fallback Mock Metrics
@@ -229,7 +266,7 @@ export async function createCallAction(input: CreateCallInput) {
           status: 'COMPLETED',
           customerName: input.customerName || 'Unknown Customer',
           customerId: input.customerId || 'CUST-0000',
-          organizationId: dbUser.organizationId!,
+          organizationId: organizationId,
           agentId: input.agentId || null,
         },
       })
