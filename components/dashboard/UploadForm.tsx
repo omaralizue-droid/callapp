@@ -109,51 +109,70 @@ export default function UploadForm() {
 
     try {
       const supabase = createClient()
-      
-      // 1. Generate clean path name in storage calls bucket
-      const fileExt = file.name.split('.').pop()
-      const cleanFileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
-      const filePath = `recordings/${cleanFileName}`
+      const isBypass = !process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project-id')
+      let publicUrl = ''
 
-      // 2. Perform actual upload via XMLHttpRequest to track progress natively
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      const uploadUrl = `${supabaseUrl}/storage/v1/object/calls/${filePath}`
+      if (isBypass) {
+        // Simulate upload progress natively
+        await new Promise<void>((resolve) => {
+          let currentProgress = 0
+          const interval = setInterval(() => {
+            currentProgress += 20
+            setProgress(currentProgress)
+            if (currentProgress >= 100) {
+              clearInterval(interval)
+              resolve()
+            }
+          }, 100)
+        })
+        publicUrl = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+      } else {
+        // 1. Generate clean path name in storage calls bucket
+        const fileExt = file.name.split('.').pop()
+        const cleanFileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
+        const filePath = `recordings/${cleanFileName}`
 
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest()
-        xhr.open('POST', uploadUrl, true)
-        xhr.setRequestHeader('Authorization', `Bearer ${supabaseKey}`)
-        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
-        
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percent = (event.loaded / event.total) * 100
-            setProgress(Math.round(percent))
-          }
-        }
+        // 2. Perform actual upload via XMLHttpRequest to track progress natively
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        const uploadUrl = `${supabaseUrl}/storage/v1/object/calls/${filePath}`
 
-        xhr.onload = () => {
-          if (xhr.status === 200 || xhr.status === 201) {
-            resolve()
-          } else {
-            try {
-              const res = JSON.parse(xhr.responseText)
-              reject(new Error(res.message || `Upload failed with status ${xhr.status}`))
-            } catch {
-              reject(new Error(`Upload failed with status ${xhr.status}`))
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest()
+          xhr.open('POST', uploadUrl, true)
+          xhr.setRequestHeader('Authorization', `Bearer ${supabaseKey}`)
+          xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
+          
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const percent = (event.loaded / event.total) * 100
+              setProgress(Math.round(percent))
             }
           }
-        }
 
-        xhr.onerror = () => reject(new Error('Network upload error'))
-        xhr.send(file)
-      })
+          xhr.onload = () => {
+            if (xhr.status === 200 || xhr.status === 201) {
+              resolve()
+            } else {
+              try {
+                const res = JSON.parse(xhr.responseText)
+                reject(new Error(res.message || `Upload failed with status ${xhr.status}`))
+              } catch {
+                reject(new Error(`Upload failed with status ${xhr.status}`))
+              }
+            }
+          }
 
-      // 3. Retrieve public URL for database storage mapping
-      const { data: { publicUrl } } = supabase.storage
-        .from('calls')
-        .getPublicUrl(filePath)
+          xhr.onerror = () => reject(new Error('Network upload error'))
+          xhr.send(file)
+        })
+
+        // 3. Retrieve public URL for database storage mapping
+        const { data } = supabase.storage
+          .from('calls')
+          .getPublicUrl(filePath)
+        publicUrl = data?.publicUrl || filePath
+      }
 
       setStatus('analyzing')
 
@@ -161,7 +180,7 @@ export default function UploadForm() {
       const dbRes = await createCallAction({
         title,
         filename: file.name,
-        fileUrl: publicUrl || filePath,
+        fileUrl: publicUrl,
         fileSize: file.size,
         duration: duration || 252,
         customerName,

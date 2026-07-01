@@ -33,8 +33,21 @@ function createPrismaMock() {
       }
       return new Proxy({} as any, {
         get(target2, prop2) {
-          // Return dummy functions for all model operations
-          return async () => null
+          return async () => {
+            const resultProxy: any = new Proxy({} as any, {
+              get(target3, prop3) {
+                if (prop3 === 'id') return 'mock-id-' + Math.random().toString(36).substring(2, 9)
+                if (prop3 === 'organizationId') return 'mock-org-id'
+                if (prop3 === 'organization') return { name: 'CallPilot Demo' }
+                if (prop3 === 'role') return 'ADMIN'
+                if (prop3 === 'email') return 'omaralizue@gmail.com'
+                if (prop3 === 'firstName') return 'Developer'
+                if (prop3 === 'lastName') return ''
+                return resultProxy
+              }
+            })
+            return resultProxy
+          }
         }
       })
     }
