@@ -172,7 +172,7 @@ export default function WaveformGenerator({ file }: WaveformGeneratorProps) {
       // Determine active vs inactive color matches
       const isActive = index <= activeIndex
       
-      ctx.fillStyle = isActive ? '#06b6d4' : '#1e293b' // Cyan vs Slate-800
+      ctx.fillStyle = isActive ? '#4f46e5' : '#cbd5e1' // Indigo-600 vs Slate-300
       
       // Draw rounded bars
       ctx.beginPath()
@@ -202,14 +202,14 @@ export default function WaveformGenerator({ file }: WaveformGeneratorProps) {
   if (!file) return null
 
   return (
-    <div className="glass rounded-xl p-5 border border-white/5 bg-slate-900/10 space-y-4">
+    <div className="rounded-xl p-5 border border-slate-200 bg-white space-y-4 shadow-sm">
       <div className="flex justify-between items-center">
-        <h4 className="font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-          <FileAudio className="w-4 h-4 text-cyan-400 animate-pulse" />
+        <h4 className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+          <FileAudio className="w-4 h-4 text-indigo-600 animate-pulse" />
           Local Waveform Preview
         </h4>
         {decoding ? (
-          <span className="text-[10px] text-cyan-400 font-mono flex items-center gap-1">
+          <span className="text-[10px] text-indigo-600 font-mono flex items-center gap-1">
             <Sparkles className="w-3.5 h-3.5 animate-spin" />
             Decoding waves...
           </span>
@@ -228,7 +228,7 @@ export default function WaveformGenerator({ file }: WaveformGeneratorProps) {
       )}
 
       {/* Waveform Render Canvas container */}
-      <div className="bg-slate-950/80 rounded-xl p-4 flex items-center justify-center border border-white/5">
+      <div className="bg-slate-50 rounded-xl p-4 flex items-center justify-center border border-slate-200">
         <canvas
           ref={canvasRef}
           width={348} // 70 peaks * 5px gap spacing matches canvas size perfectly
@@ -245,22 +245,22 @@ export default function WaveformGenerator({ file }: WaveformGeneratorProps) {
           onClick={togglePlay}
           disabled={decoding}
           aria-label={isPlaying ? "Pause audio playback" : "Play audio recording"}
-          className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-all text-[11px] cursor-pointer"
+          className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-all text-[11px] cursor-pointer"
         >
           {isPlaying ? (
             <>
-              <Pause className="w-3.5 h-3.5 fill-slate-950" />
+              <Pause className="w-3.5 h-3.5 fill-white" />
               Pause Playback
             </>
           ) : (
             <>
-              <Play className="w-3.5 h-3.5 fill-slate-950" />
+              <Play className="w-3.5 h-3.5 fill-white" />
               Play Audio
             </>
           )}
         </button>
 
-        <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
+        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
           Double-click to loop
         </span>
       </div>

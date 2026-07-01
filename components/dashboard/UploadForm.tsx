@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase/client'
 import { createCallAction } from '@/actions/calls'
 import WaveformGenerator from '@/components/dashboard/WaveformGenerator'
 
-// Mock workspace agents
 const AGENTS = [
   { id: 'agent-1', name: 'Alex Rodriguez' },
   { id: 'agent-2', name: 'Lisa Miller' },
@@ -80,7 +79,7 @@ export default function UploadForm() {
 
     setFile(selectedFile)
     
-    // Parse actual audio duration dynamically
+    // Parse duration dynamically
     const audioUrl = URL.createObjectURL(selectedFile)
     const audio = new Audio(audioUrl)
     audio.onloadedmetadata = () => {
@@ -88,13 +87,11 @@ export default function UploadForm() {
       URL.revokeObjectURL(audioUrl)
     }
     audio.onerror = () => {
-      // Set a fallback default duration if metadata decoding fails
       setDuration(252)
       URL.revokeObjectURL(audioUrl)
     }
 
     if (!title) {
-      // Auto-populate title with file name minus extension
       setTitle(selectedFile.name.replace(/\.[^/.]+$/, '').replace(/[-_]+/g, ' '))
     }
   }
@@ -113,7 +110,7 @@ export default function UploadForm() {
       let publicUrl = ''
 
       if (isBypass) {
-        // Simulate upload progress natively
+        // Simulate upload natively
         await new Promise<void>((resolve) => {
           let currentProgress = 0
           const interval = setInterval(() => {
@@ -127,12 +124,10 @@ export default function UploadForm() {
         })
         publicUrl = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
       } else {
-        // 1. Generate clean path name in storage calls bucket
         const fileExt = file.name.split('.').pop()
         const cleanFileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
         const filePath = `recordings/${cleanFileName}`
 
-        // 2. Perform actual upload via XMLHttpRequest to track progress natively
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
         const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         const uploadUrl = `${supabaseUrl}/storage/v1/object/calls/${filePath}`
@@ -167,7 +162,6 @@ export default function UploadForm() {
           xhr.send(file)
         })
 
-        // 3. Retrieve public URL for database storage mapping
         const { data } = supabase.storage
           .from('calls')
           .getPublicUrl(filePath)
@@ -176,7 +170,6 @@ export default function UploadForm() {
 
       setStatus('analyzing')
 
-      // 4. Save call and fallback metrics details to PostgreSQL
       const dbRes = await createCallAction({
         title,
         filename: file.name,
@@ -207,51 +200,50 @@ export default function UploadForm() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 text-xs">
+    <div className="max-w-3xl mx-auto space-y-6 text-xs text-slate-700">
       <div>
-        <h2 className="text-xl font-black text-white tracking-tight">Upload Call Recording</h2>
+        <h2 className="text-xl font-bold text-slate-800 tracking-tight">Upload Call Recording</h2>
         <p className="text-[10px] text-slate-500 mt-1">Audit customer conversations for QA compliance metrics</p>
       </div>
 
       {status !== 'idle' ? (
         // Progress States Card
-        <div className="glass rounded-xl p-8 border border-white/5 text-center space-y-6">
+        <div className="rounded-xl p-8 border border-slate-200 bg-white text-center space-y-6 shadow-sm">
           <div className="flex flex-col items-center">
             {status === 'uploading' && (
               <>
-                <Loader2 className="w-10 h-10 animate-spin text-cyan-400 mb-4" />
-                <h3 className="text-sm font-bold text-white">Uploading audio recording...</h3>
+                <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
+                <h3 className="text-sm font-bold text-slate-800">Uploading audio recording...</h3>
                 <p className="text-[10px] text-slate-500 mt-1">Transferring raw audio bits to storage vault</p>
               </>
             )}
 
             {status === 'analyzing' && (
               <>
-                <Loader2 className="w-10 h-10 animate-spin text-indigo-400 mb-4" />
-                <h3 className="text-sm font-bold text-white">Analyzing call with Gemini...</h3>
+                <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
+                <h3 className="text-sm font-bold text-slate-800">Analyzing call with Gemini...</h3>
                 <p className="text-[10px] text-slate-500 mt-1">Transcribing dialogue, scoring compliance rubrics, and generating coaching tags</p>
               </>
             )}
 
             {status === 'success' && (
               <>
-                <CheckCircle className="w-10 h-10 text-emerald-400 mb-4" />
-                <h3 className="text-sm font-bold text-white">Analysis Complete!</h3>
+                <CheckCircle className="w-10 h-10 text-emerald-600 mb-4" />
+                <h3 className="text-sm font-bold text-slate-800">Analysis Complete!</h3>
                 <p className="text-[10px] text-slate-500 mt-1">Redirecting you to dashboard feed...</p>
               </>
             )}
           </div>
 
-          {/* Progress Bar indicator */}
           <div className="w-full max-w-md mx-auto space-y-2">
             <div className="flex justify-between text-[10px] text-slate-400">
               <span>{status === 'uploading' ? 'Upload Status' : 'Gemini scoring'}</span>
               <span>{status === 'uploading' ? `${progress}%` : 'Processing...'}</span>
             </div>
-            <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-white/5">
+            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
               <div
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  status === 'uploading' ? 'bg-cyan-500' : 'bg-indigo-500 animate-pulse'
+                  status === 'uploading' ? 'bg-indigo-600' : 'bg-indigo-600 animate-pulse'
                 }`}
                 style={{ width: status === 'uploading' ? `${progress}%` : '100%' }}
               />
@@ -263,27 +255,27 @@ export default function UploadForm() {
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           {/* Left panel: Metadata Form */}
-          <div className="glass rounded-xl p-5 border border-white/5 space-y-4 md:col-span-1">
+          <div className="rounded-xl p-5 border border-slate-200 bg-white space-y-4 md:col-span-1 shadow-sm">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Call Metadata</h3>
             
             <div className="space-y-3">
-              <div className="space-y-1">
-                <label className="font-semibold text-slate-400">Call Title</label>
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Call Title</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Subscription billing dispute"
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:border-cyan-500 transition-colors"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/10 transition-all placeholder:text-slate-400"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="font-semibold text-slate-400">Assigned Agent</label>
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Assigned Agent</label>
                 <select
                   value={agentId}
                   onChange={(e) => setAgentId(e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:border-cyan-500 transition-colors"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/10 transition-all"
                 >
                   <option value="">Select agent...</option>
                   {AGENTS.map((a) => (
@@ -294,25 +286,25 @@ export default function UploadForm() {
                 </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="font-semibold text-slate-400">Customer Name</label>
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Customer Name</label>
                 <input
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="Marcus Vance"
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:border-cyan-500 transition-colors"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/10 transition-all placeholder:text-slate-400"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="font-semibold text-slate-400">Customer Identifier / CRM ID</label>
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Customer Identifier / CRM ID</label>
                 <input
                   type="text"
                   value={customerId}
                   onChange={(e) => setCustomerId(e.target.value)}
                   placeholder="CUST-9821"
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:border-cyan-500 transition-colors"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/10 transition-all placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -327,12 +319,12 @@ export default function UploadForm() {
               onDragOver={handleDrag}
               onDragLeave={handleDrag}
               onDrop={handleDrop}
-              className={`glass rounded-xl border border-dashed p-10 flex flex-col items-center justify-center min-h-[250px] relative transition-all duration-300 ${
+              className={`rounded-xl border border-dashed p-10 flex flex-col items-center justify-center min-h-[250px] relative transition-all duration-300 bg-white ${
                 dragActive
-                  ? 'border-cyan-400 bg-cyan-950/10'
+                  ? 'border-indigo-600 bg-indigo-50/50'
                   : file
-                  ? 'border-emerald-500/40 bg-emerald-950/5'
-                  : 'border-white/10 hover:border-cyan-500/35 hover:bg-slate-950/20'
+                  ? 'border-emerald-500/40 bg-emerald-50/30'
+                  : 'border-slate-200 hover:border-indigo-600 hover:bg-slate-50/50'
               }`}
             >
               <input
@@ -347,18 +339,18 @@ export default function UploadForm() {
               {file ? (
                 // Selected File Preview
                 <div className="flex flex-col items-center text-center space-y-4">
-                  <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shadow-sm">
                     <FileAudio className="w-6 h-6" />
                   </div>
                   <div>
-                    <span className="block font-bold text-white text-sm truncate max-w-md">{file.name}</span>
-                    <span className="block text-[10px] text-slate-500 font-mono mt-1">
+                    <span className="block font-bold text-slate-800 text-sm truncate max-w-md">{file.name}</span>
+                    <span className="block text-[10px] text-slate-400 font-mono mt-1">
                       {(file.size / (1024 * 1024)).toFixed(2)} MB
                     </span>
                   </div>
                   <label
                     htmlFor="file-upload"
-                    className="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold cursor-pointer underline"
+                    className="text-[10px] text-indigo-600 hover:text-indigo-700 font-bold cursor-pointer underline"
                   >
                     Replace recording
                   </label>
@@ -366,14 +358,14 @@ export default function UploadForm() {
               ) : (
                 // Drag active or idle states
                 <label htmlFor="file-upload" className="flex flex-col items-center text-center cursor-pointer group">
-                  <div className="w-12 h-12 bg-slate-900 border border-white/5 text-slate-400 group-hover:text-cyan-400 group-hover:border-cyan-500/20 rounded-xl flex items-center justify-center shadow-inner mb-4 transition-all duration-300">
+                  <div className="w-12 h-12 bg-slate-50 border border-slate-200 text-slate-400 group-hover:text-indigo-600 group-hover:border-indigo-600/30 rounded-lg flex items-center justify-center mb-4 transition-all duration-300">
                     <UploadCloud className="w-6 h-6" />
                   </div>
-                  <span className="block font-bold text-white text-sm mb-1">
+                  <span className="block font-bold text-slate-800 text-sm mb-1">
                     Drag and drop call recording
                   </span>
-                  <span className="block text-slate-500 text-[10px] leading-relaxed max-w-xs">
-                    Accepts voice files in **WAV**, **MP3**, **M4A**, or **AAC** formats up to 500MB
+                  <span className="block text-slate-400 text-[10px] leading-relaxed max-w-xs">
+                    Accepts voice files in WAV, MP3, M4A, or AAC formats up to 500MB
                   </span>
                 </label>
               )}
@@ -383,7 +375,7 @@ export default function UploadForm() {
             {file && <WaveformGenerator file={file} />}
 
             {errorMsg && (
-              <div className="bg-rose-500/15 text-rose-400 border border-rose-500/20 rounded-lg p-3 text-xs flex items-start gap-2.5">
+              <div className="bg-rose-50 text-rose-600 border border-rose-100 rounded-lg p-3 text-xs flex items-start gap-2.5">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{errorMsg}</span>
               </div>
@@ -394,14 +386,14 @@ export default function UploadForm() {
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="bg-transparent hover:bg-white/5 border border-white/10 font-bold px-5 py-2.5 rounded-lg text-slate-300 transition-all cursor-pointer"
+                className="bg-transparent hover:bg-slate-50 border border-slate-200 font-bold px-5 py-2.5 rounded-lg text-slate-600 transition-all cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!file}
-                className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-8 py-2.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-cyan-500/10 cursor-pointer"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-2.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm shadow-indigo-600/10 cursor-pointer"
               >
                 Process & Score Call
               </button>
