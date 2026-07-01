@@ -8,6 +8,7 @@ export interface BlogPost {
   content: string
   faqs: { q: string; a: string }[]
   related: string[]
+  featuredImage: string
 }
 
 export const BLOG_POSTS: BlogPost[] = [
@@ -18,6 +19,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'QA Automation',
     publishedAt: '2026-06-15',
     readTime: '6 min read',
+    featuredImage: '/images/blog/qa-automation.jpg',
     content: `
       <h2>The Shift from Manual Sampling to 100% QA Automation</h2>
       <p>Historically, call center QA managers have been forced to manually audit a tiny fraction of voice recordings—often less than 1% of total calls. This sampling bias leads to skewed performance reviews, missed compliance errors, and frustrated agents who feel evaluated on anomalies rather than their overall performance.</p>
@@ -41,6 +43,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Speech Analytics',
     publishedAt: '2026-06-12',
     readTime: '5 min read',
+    featuredImage: '/images/blog/speech-analytics.jpg',
     content: `
       <h2>Why Speech Analytics is Critical for High-Volume Support</h2>
       <p>Every phone call contains critical business intelligence. Speech analytics processes acoustic and text data to identify customer sentiment, friction points, and script compliance on a massive scale.</p>
@@ -60,6 +63,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'AI Coaching',
     publishedAt: '2026-06-10',
     readTime: '7 min read',
+    featuredImage: '/images/blog/ai-coaching.jpg',
     content: `
       <h2>The Limits of Monthly Performance Reviews</h2>
       <p>Waiting for monthly reviews means agents repeat the same mistakes for weeks. AI coaching provides instant feedback cards directly after call completion, highlighting exact moments where compliance was missed or soft skills could be improved.</p>
@@ -79,6 +83,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Call Summary AI',
     publishedAt: '2026-06-08',
     readTime: '5 min read',
+    featuredImage: '/images/blog/call-summary.jpg',
     content: `
       <h2>Eliminating Manual After-Call Work (ACW)</h2>
       <p>Agents spend up to 20% of their day typing summaries into CRMs. Call Summary AI automates this task by structuring transcripts into customer purposing, issue identification, resolutions, and follow-up tasks.</p>
@@ -98,6 +103,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Conversation Intelligence',
     publishedAt: '2026-06-05',
     readTime: '6 min read',
+    featuredImage: '/images/blog/conversation-intelligence.jpg',
     content: `
       <h2>What is Conversation Intelligence?</h2>
       <p>Conversation intelligence leverages machine learning to transcribe, grade, and extract intent from customer voice conversations. It helps organizations bridge the gap between telemetry metrics and customer conversations.</p>
@@ -117,6 +123,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Contact Center Software',
     publishedAt: '2026-06-01',
     readTime: '8 min read',
+    featuredImage: '/images/blog/contact-center-software.jpg',
     content: `
       <h2>The Challenges of Managing Remote Support Teams</h2>
       <p>With agents working from home, call center managers lose the ability to walk the floor and listen to live calls. Cloud contact center software combined with automated QA restores visibility by scoring all interactions remotely.</p>
@@ -136,6 +143,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Call Summary AI',
     publishedAt: '2026-05-28',
     readTime: '5 min read',
+    featuredImage: '/images/blog/reducing-acw.jpg',
     content: `
       <h2>What is After-Call Work (ACW)?</h2>
       <p>ACW is the time an agent spends updating fields, writing logs, and creating tickets after hanging up. By utilizing AI summarization, this step is handled automatically, freeing agents to take the next call instantly.</p>
@@ -152,6 +160,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'QA Automation',
     publishedAt: '2026-05-25',
     readTime: '6 min read',
+    featuredImage: '/images/blog/custom-qa-rubrics.jpg',
     content: `
       <h2>The Danger of Rigid Compliance Checklists</h2>
       <p>Rigid checklists make agents sound robotic. A modern QA rubric balances compliance rules (disclosures, greetings) with soft skills, tracking customer sentiment dynamically.</p>
@@ -168,6 +177,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Speech Analytics',
     publishedAt: '2026-05-20',
     readTime: '6 min read',
+    featuredImage: '/images/blog/analytics-comparison.jpg',
     content: `
       <h2>Understanding the Differences</h2>
       <p>Real-time tools guide agents during calls, while post-call analytics perform deep-dive audits, compliance checks, and trend analysis. Most SaaS setups use post-call analytics for its superior accuracy and deep evaluation properties.</p>
@@ -184,6 +194,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'QA Automation',
     publishedAt: '2026-05-18',
     readTime: '7 min read',
+    featuredImage: '/images/blog/scaling-bpo.jpg',
     content: `
       <h2>Winning Enterprise BPO Contracts</h2>
       <p>Enterprise clients demand high compliance SLA proof. BPOs that automate QA can guarantee 100% call auditing, offering audit transparency that manual sampling cannot match.</p>
@@ -200,6 +211,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Customer Support AI',
     publishedAt: '2026-05-15',
     readTime: '6 min read',
+    featuredImage: '/images/blog/ai-trends.jpg',
     content: `
       <h2>The Rise of Acoustic LLMs</h2>
       <p>Acoustic speech models analyze voice pitch, speed, and silence directly without converting to text first. This enables highly accurate empathy and frustration scoring in conversation intelligence platforms.</p>
@@ -216,6 +228,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Speech Analytics',
     publishedAt: '2026-05-10',
     readTime: '5 min read',
+    featuredImage: '/images/blog/customer-frustration.jpg',
     content: `
       <h2>Acoustic Frustration Markers</h2>
       <p>Customer frustration is not just about keywords; it is about conversational speed, interruptions, and long silences. Speech analytics maps these markers to flag unhappy clients automatically.</p>
@@ -232,6 +245,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'AI Coaching',
     publishedAt: '2026-05-05',
     readTime: '6 min read',
+    featuredImage: '/images/blog/agent-retention.jpg',
     content: `
       <h2>Reducing Call Center Agent Burnout</h2>
       <p>High agent turnover is often caused by subjective, stressful reviews. AI coaching builds trust by scoring calls consistently and offering constructive tips, reducing friction.</p>
@@ -248,6 +262,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Contact Center Software',
     publishedAt: '2026-05-01',
     readTime: '7 min read',
+    featuredImage: '/images/blog/gdpr-compliance.jpg',
     content: `
       <h2>Securing Voice Recordings</h2>
       <p>GDPR and CCPA mandate that customer recordings must be protected. Contact center software should encrypt data at rest, restrict access, and redact credit card numbers automatically.</p>
@@ -264,6 +279,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'QA Automation',
     publishedAt: '2026-04-28',
     readTime: '6 min read',
+    featuredImage: '/images/blog/qa-roi.jpg',
     content: `
       <h2>Measuring Financial Impact</h2>
       <p>QA automation reduces manual auditing hours, cuts compliance fines, and speeds up agent onboarding times. We break down the math for a 100-seat contact center.</p>
@@ -280,6 +296,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Conversation Intelligence',
     publishedAt: '2026-04-25',
     readTime: '5 min read',
+    featuredImage: '/images/blog/sentiment-tracking.jpg',
     content: `
       <h2>Spotting Call Turning Points</h2>
       <p>Sentiment tracking monitors positive and negative emotional shifts. Catching a slide in sentiment early helps agents adjust their tone and resolve the problem before escalation.</p>
@@ -296,6 +313,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Contact Center Software',
     publishedAt: '2026-04-20',
     readTime: '6 min read',
+    featuredImage: '/images/blog/telephony-integration.jpg',
     content: `
       <h2>Telephony Pipeline Architecture</h2>
       <p>Pass audio securely from platforms like Twilio, Genesys, or Zoom directly to analysis pipelines. Learn how webhook events trigger automated grading engines.</p>
@@ -312,6 +330,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Customer Support AI',
     publishedAt: '2026-04-15',
     readTime: '5 min read',
+    featuredImage: '/images/blog/first-call-resolution.jpg',
     content: `
       <h2>The High Cost of Repeat Callers</h2>
       <p>Repeat callers drive up call volumes and drag down satisfaction. Analyzing repeat call transcripts reveals common agent knowledge gaps, which AI coaches can address.</p>
@@ -328,6 +347,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'QA Automation',
     publishedAt: '2026-04-10',
     readTime: '6 min read',
+    featuredImage: '/images/blog/qa-bias.jpg',
     content: `
       <h2>The Reality of Human Auditor Bias</h2>
       <p>Human auditors may score calls differently depending on mood or personal preference. AI platforms evaluate transcripts against static rules, ensuring objective, fair reviews.</p>
@@ -344,6 +364,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'AI Coaching',
     publishedAt: '2026-04-05',
     readTime: '5 min read',
+    featuredImage: '/images/blog/objection-handling.jpg',
     content: `
       <h2>Objection Handling Analysis</h2>
       <p>Objection handling is a key sales skill. AI coaching cards capture exactly when a customer pushes back, providing agents with templates for response improvement.</p>
@@ -360,6 +381,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Speech Analytics',
     publishedAt: '2026-04-01',
     readTime: '6 min read',
+    featuredImage: '/images/blog/stt-comparison.jpg',
     content: `
       <h2>Telephony Transcription Challenges</h2>
       <p>Telephony audio is compressed to 8kHz, making transcription difficult. Advanced models like Gemini analyze context clues to maintain high accuracy despite compression.</p>
@@ -376,6 +398,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'QA Automation',
     publishedAt: '2026-03-25',
     readTime: '7 min read',
+    featuredImage: '/images/blog/regulated-qa.jpg',
     content: `
       <h2>Auditing Highly Regulated Sectors</h2>
       <p>Healthcare and financial BPOs must follow strict rules. Automated QA guarantees that call disclosures, identity checks, and terms are stated on every single interaction.</p>
@@ -392,6 +415,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'QA Automation',
     publishedAt: '2026-03-20',
     readTime: '6 min read',
+    featuredImage: '/images/blog/agent-kpis.jpg',
     content: `
       <h2>The Problem with Average Handle Time (AHT)</h2>
       <p>Pressuring agents to reduce AHT can lead to rushed customer service and compliance errors. Modern contact centers evaluate active listening, empathy, and FCR instead.</p>
@@ -408,6 +432,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Call Summary AI',
     publishedAt: '2026-03-15',
     readTime: '5 min read',
+    featuredImage: '/images/blog/crm-integration-notes.jpg',
     content: `
       <h2>Structured Logs vs. Freeform Text</h2>
       <p>Freeform text logs are often incomplete and hard to read. Structured CRM notes organize transcripts into clear fields (issue, resolution, action items) for easy tracking.</p>
@@ -424,6 +449,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Speech Analytics',
     publishedAt: '2026-03-10',
     readTime: '5 min read',
+    featuredImage: '/images/blog/silence-analytics.jpg',
     content: `
       <h2>The Impact of Dead Air</h2>
       <p>Long silences signal that an agent is struggling to find information or the system is slow. Speech analytics flags dead air, allowing managers to target training and speed up lookups.</p>
@@ -440,6 +466,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Conversation Intelligence',
     publishedAt: '2026-03-05',
     readTime: '6 min read',
+    featuredImage: '/images/blog/gemini-intelligence.jpg',
     content: `
       <h2>Multi-Modal Auditing Advantages</h2>
       <p>Traditional setups transcribe audio to text first, losing tone and pitch. Gemini evaluates audio files directly, capturing sarcasm, empathy, and interruptions accurately.</p>
@@ -456,6 +483,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'AI Coaching',
     publishedAt: '2026-03-01',
     readTime: '6 min read',
+    featuredImage: '/images/blog/agent-onboarding.jpg',
     content: `
       <h2>Accelerating Agent Onboarding</h2>
       <p>Training agents takes weeks. AI coaching shortens this curve by letting new hires practice on real calls, receiving instant feedback cards on compliance and soft skills.</p>
@@ -472,6 +500,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Conversation Intelligence',
     publishedAt: '2026-02-25',
     readTime: '5 min read',
+    featuredImage: '/images/blog/churn-insights.jpg',
     content: `
       <h2>Identifying Churn Indicators</h2>
       <p>Identify churn signals before customers cancel. Conversation intelligence flags competitor mentions, price complaints, and billing issues, allowing outbound BPO teams to follow up.</p>
@@ -488,6 +517,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'QA Automation',
     publishedAt: '2026-02-20',
     readTime: '6 min read',
+    featuredImage: '/images/blog/objection-compliance.jpg',
     content: `
       <h2>Ensuring Compliance in Retention Calls</h2>
       <p>Retention agents must follow pitch guidelines. Automated QA monitors whether agents offer alternative plans, checking for compliant disclosures during the offer.</p>
@@ -504,6 +534,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Contact Center Software',
     publishedAt: '2026-02-15',
     readTime: '6 min read',
+    featuredImage: '/images/blog/pii-redaction.jpg',
     content: `
       <h2>The Importance of PII Redaction</h2>
       <p>Security regulations require contact center software to scrub personal info from transcripts. Learn how CallPilot automatically replaces names, cards, and phone numbers with generic tokens.</p>

@@ -47,6 +47,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
     '@type': 'Article',
     'headline': post.title,
     'description': post.description,
+    'image': `https://callpilot.ai${post.featuredImage}`,
     'datePublished': post.publishedAt,
     'author': {
       '@type': 'Organization',
@@ -134,6 +135,16 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
           <h1 className={`text-3xl md:text-5xl font-black ${textTitleClass} leading-tight`}>
             {post.title}
           </h1>
+
+          {/* Featured Image Placeholder */}
+          <div className={`w-full aspect-[21/9] rounded-xl overflow-hidden flex items-center justify-center border relative ${
+            theme === 'dark' ? 'bg-slate-900/50 border-white/5' : 'bg-slate-100 border-slate-200'
+          }`}>
+            <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 to-indigo-500/10 opacity-60" />
+            <span className={`text-[10px] font-bold uppercase tracking-widest relative z-10 ${textMutedClass}`}>
+              Featured Image Placeholder: {post.featuredImage}
+            </span>
+          </div>
 
           {/* Article main body */}
           <div 
