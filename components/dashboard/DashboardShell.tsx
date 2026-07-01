@@ -22,6 +22,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { signoutAction } from '@/actions/auth'
+import HeaderAnimation from './HeaderAnimation'
 
 interface DashboardShellProps {
   children: React.ReactNode
@@ -240,6 +241,8 @@ export default function DashboardShell({ children, profile }: DashboardShellProp
               {getBreadcrumbs()}
             </span>
           </div>
+
+          <HeaderAnimation />
 
           {/* Right: Search, Notifications, Avatar */}
           <div className="flex items-center gap-4">
