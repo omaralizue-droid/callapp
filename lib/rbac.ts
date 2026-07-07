@@ -3,6 +3,8 @@ import prisma from '@/lib/db'
 import { Role } from '@/types'
 import { redirect } from 'next/navigation'
 
+import { tenantStorage } from './tenant-context'
+
 /**
  * Asserts the current authenticated user belongs to one of the allowed roles.
  * If not authenticated, redirects to /login.
@@ -12,14 +14,20 @@ export async function assertRole(allowedRoles: Role[]) {
   // Development bypass: skip auth and role checks when enabled
   if (process.env.DEV_AUTH_BYPASS !== 'false') {
     // Return a mock admin profile for local development
-    return {
+    const mockProfile = {
       id: 'dev-user',
       email: 'omaralizue@gmail.com',
       role: 'ADMIN' as Role,
-      organizationId: null,
+      organizationId: 'mock-org-id',
       firstName: 'Developer',
       lastName: '',
     };
+    tenantStorage.enterWith({
+      organizationId: mockProfile.organizationId,
+      userId: mockProfile.id,
+      role: mockProfile.role,
+    })
+    return mockProfile;
   }
 
   const supabase = await createClient()
@@ -46,6 +54,13 @@ export async function assertRole(allowedRoles: Role[]) {
   if (!profile || !allowedRoles.includes(profile.role as Role)) {
     redirect('/dashboard/unauthorized')
   }
+
+  // Populate context storage for dynamic tenant query boundaries
+  tenantStorage.enterWith({
+    organizationId: profile.organizationId || '',
+    userId: profile.id,
+    role: profile.role,
+  })
 
   return {
     ...profile,

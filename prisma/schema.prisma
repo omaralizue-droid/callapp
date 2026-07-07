@@ -8,10 +8,13 @@ generator client {
   provider = "prisma-client-js"
 }
 enum Role {
+  OWNER
   ADMIN
+  QA_MANAGER
   MANAGER
   QA
   AGENT
+  VIEWER
 }
 
 enum CallStatus {
