@@ -189,7 +189,13 @@ export async function createCallAction(input: CreateCallInput) {
     ]
   }
 
-  // 1. Run Gemini 2.5 Pro Live analysis if Api Key exists
+  const isBypass = process.env.DEV_AUTH_BYPASS === 'true'
+
+  if (!process.env.GEMINI_API_KEY && !isBypass) {
+    return { error: 'GEMINI_API_KEY is not configured in your Vercel/local environment variables. Please add it to your project settings.' }
+  }
+
+  // 1. Run Gemini 2.5 Live analysis if Api Key exists
   if (process.env.GEMINI_API_KEY) {
     try {
       if (process.env.NODE_ENV !== 'production') console.info(`[Gemini] Executing audio analysis pipeline: ${input.fileUrl}`)
@@ -240,7 +246,7 @@ export async function createCallAction(input: CreateCallInput) {
           8
       )
       
-      feedback = `Detailed QA Scorecard completed by Gemini 2.5 Pro. Overall Audit Score: ${score}%. Identified mistakes and suggested improvements registered.`
+      feedback = `Detailed QA Scorecard completed by Gemini. Overall Audit Score: ${score}%. Identified mistakes and suggested improvements registered.`
 
       checklist = {
         greeting: sc.greeting,
@@ -272,7 +278,10 @@ export async function createCallAction(input: CreateCallInput) {
 
       if (process.env.NODE_ENV !== 'production') console.info(`[Gemini] Call grading completed: ${score}%`)
     } catch (err) {
-      console.error('Gemini audio analysis pipeline failed or timed out. Falling back to local metrics:', err)
+      console.error('Gemini audio analysis pipeline failed:', err)
+      if (!isBypass) {
+        return { error: `Gemini audio analysis failed: ${(err as Error).message || String(err)}. Please ensure your audio file is valid, public, and the API key quota has not expired.` }
+      }
     }
   } else {
     if (process.env.NODE_ENV !== 'production') console.info('[Gemini] No GEMINI_API_KEY — using mock call grading sandbox.')
