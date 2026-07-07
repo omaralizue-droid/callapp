@@ -66,7 +66,7 @@ export default function SettingsForm() {
   const [newTeamDesc, setNewTeamDesc] = useState('')
 
   // Storage and diagnostics states
-  const [geminiModel, setGeminiModel] = useState('gemini-2.5-pro')
+  const [geminiModel, setGeminiModel] = useState('gemini-2.5-flash')
   const [geminiTemp, setGeminiTemp] = useState(0.2)
   const [webhookUrl, setWebhookUrl] = useState('https://hooks.salesforce.com/services/xxxx/xxxx')
   const apiKey = 'cp_live_pk_xxxxxxxxxxxxxx'
@@ -755,8 +755,8 @@ export default function SettingsForm() {
                         onChange={e => setGeminiModel(e.target.value)}
                         className="w-full bg-slate-900 border border-white/10 text-slate-300 rounded-lg px-3 py-2.5 outline-none focus:border-cyan-500"
                       >
-                        <option value="gemini-2.5-pro">Gemini 2.5 Pro (Recommended)</option>
-                        <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast & Cost-Efficient)</option>
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recommended & Active)</option>
+                        <option value="gemini-2.5-pro">Gemini 2.5 Pro (Quota Dependent)</option>
                         <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
                       </select>
                     </div>
