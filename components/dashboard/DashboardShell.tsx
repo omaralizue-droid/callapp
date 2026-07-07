@@ -55,7 +55,11 @@ export default function DashboardShell({ children, profile }: DashboardShellProp
   ].filter((item) => item.roles.includes(profile?.role || 'AGENT'))
 
   const handleLogout = async () => {
-    await signoutAction()
+    try {
+      await signoutAction()
+    } catch (err) {
+      console.warn('Signout failed, forcing redirect:', err)
+    }
     window.location.href = '/login'
   }
 
@@ -178,10 +182,10 @@ export default function DashboardShell({ children, profile }: DashboardShellProp
         )}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer group"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer group relative overflow-hidden"
           style={{ color: '#f43f5e' }}
         >
-          <span className="absolute inset-0 rounded-xl bg-rose-500/0 group-hover:bg-rose-500/10 transition-colors" />
+          <span className="absolute inset-0 rounded-xl bg-rose-500/0 group-hover:bg-rose-500/10 transition-colors pointer-events-none" />
           <LogOut className="w-4 h-4 relative z-10" style={{ color: '#f43f5e' }} />
           <span className="relative z-10">Sign out</span>
         </button>
