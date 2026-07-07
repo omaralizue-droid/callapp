@@ -82,6 +82,20 @@ model Organization {
   calls     Call[]
   setting   Setting?
 
+  // Subscription fields
+  stripeCustomerId       String?   @unique @map("stripe_customer_id")
+  stripeSubscriptionId   String?   @unique @map("stripe_subscription_id")
+  stripePriceId          String?   @map("stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @map("stripe_current_period_end")
+  stripeCancelAtPeriodEnd Boolean   @default(false) @map("stripe_cancel_at_period_end")
+  planName               String    @default("Starter") @map("plan_name")
+  planStatus             String    @default("TRIAL") @map("plan_status") // ACTIVE, TRIAL, CANCELED, EXPIRED, PAST_DUE
+  trialEndsAt            DateTime? @map("trial_ends_at")
+  callLimit              Int       @default(100) @map("call_limit")
+  usedCalls              Int       @default(0) @map("used_calls")
+
+  paymentHistories       PaymentHistory[]
+
   // Soft Delete & Timestamps
   isDeleted Boolean   @default(false)
   createdAt DateTime  @default(now()) @map("created_at")
@@ -275,4 +289,19 @@ model Setting {
   updatedAt              DateTime     @updatedAt @map("updated_at")
 
   @@map("settings")
+}
+
+model PaymentHistory {
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  stripeInvoiceId String      @unique @map("stripe_invoice_id")
+  amount          Float
+  status          String       // PAID, FAILED, PENDING
+  planName        String       @map("plan_name")
+  createdAt       DateTime     @default(now()) @map("created_at")
+
+  @@index([organizationId])
+  @@map("payment_histories")
 }

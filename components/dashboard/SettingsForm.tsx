@@ -17,9 +17,29 @@ import {
   PlusCircle,
   Globe,
   Settings2,
+  ArrowRight,
+  ExternalLink,
 } from 'lucide-react'
+import { createCheckoutSessionAction, createPortalSessionAction } from '@/actions/stripe'
 
-export default function SettingsForm() {
+interface SettingsFormProps {
+  initialBilling?: {
+    planName: string
+    planStatus: string
+    stripeCurrentPeriodEnd: string | null
+    stripeCancelAtPeriodEnd: boolean
+    callLimit: number
+    usedCalls: number
+    paymentHistories: Array<{
+      invoice: string
+      date: string
+      amount: string
+      status: string
+    }>
+  }
+}
+
+export default function SettingsForm({ initialBilling }: SettingsFormProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [activeSubTab, setActiveSubTab] = useState<
     'profile' | 'rubric' | 'crm' | 'users' | 'permissions' | 'diagnostics' | 'analytics' | 'calls' | 'billing'
@@ -80,12 +100,52 @@ export default function SettingsForm() {
   ])
 
   // Billing states
-  const [selectedPlan, setSelectedPlan] = useState('enterprise')
-  const billingHistory = [
-    { invoice: 'INV-2026-06', date: 'Jun 1, 2026', amount: '$499.00', status: 'PAID' },
-    { invoice: 'INV-2026-05', date: 'May 1, 2026', amount: '$499.00', status: 'PAID' },
-    { invoice: 'INV-2026-04', date: 'Apr 1, 2026', amount: '$499.00', status: 'PAID' },
-  ]
+  const billing = initialBilling || {
+    planName: 'Starter',
+    planStatus: 'TRIAL',
+    stripeCurrentPeriodEnd: null,
+    stripeCancelAtPeriodEnd: false,
+    callLimit: 100,
+    usedCalls: 0,
+    paymentHistories: [
+      { invoice: 'INV-mock-01', date: 'Jun 1, 2026', amount: '$49.00', status: 'PAID' }
+    ]
+  }
+
+  const [selectedPlan, setSelectedPlan] = useState(billing.planName.toLowerCase())
+  const [isRedirecting, setIsRedirecting] = useState(false)
+
+  const handleUpgradeOrCheckout = async () => {
+    setIsRedirecting(true)
+    try {
+      const res = await createCheckoutSessionAction(selectedPlan)
+      if (res.error) {
+        alert(res.error)
+      } else if (res.url) {
+        window.location.href = res.url
+      }
+    } catch (err) {
+      alert('Failed to initialize billing session: ' + String(err))
+    } finally {
+      setIsRedirecting(false)
+    }
+  }
+
+  const handleManageBilling = async () => {
+    setIsRedirecting(true)
+    try {
+      const res = await createPortalSessionAction()
+      if (res.error) {
+        alert(res.error)
+      } else if (res.url) {
+        window.location.href = res.url
+      }
+    } catch (err) {
+      alert('Failed to open billing portal: ' + String(err))
+    } finally {
+      setIsRedirecting(false)
+    }
+  }
 
   // Handlers
   const handleAddRubricItem = () => {
@@ -904,84 +964,220 @@ export default function SettingsForm() {
             {activeSubTab === 'billing' && (
               <div className="space-y-6">
                 
-                {/* Plans Grid */}
-                <div className="space-y-3">
+                {/* Current Subscription Status & Usage */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  
+                  {/* Status Card */}
+                  <div className="glass p-5 rounded-xl border border-white/5 space-y-4">
+                    <span className="font-bold text-slate-400 uppercase tracking-wider block text-[10px]">
+                      Subscription Status
+                    </span>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <span className="text-lg font-black text-white block capitalize">
+                          {billing.planName} Plan
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          {billing.stripeCurrentPeriodEnd
+                            ? `Renews on ${new Date(billing.stripeCurrentPeriodEnd).toLocaleDateString()}`
+                            : 'Trial period active'}
+                        </span>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold border ${
+                        billing.planStatus === 'ACTIVE' 
+                          ? 'bg-green-500/10 text-green-400 border-green-500/20' 
+                          : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
+                      }`}>
+                        {billing.planStatus}
+                      </span>
+                    </div>
+
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        disabled={isRedirecting}
+                        onClick={handleManageBilling}
+                        className="w-full bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-300 font-bold py-2 rounded-lg text-[10px] flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        {isRedirecting ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            Manage Billing & Cancel
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Usage Card */}
+                  <div className="glass p-5 rounded-xl border border-white/5 space-y-3">
+                    <span className="font-bold text-slate-400 uppercase tracking-wider block text-[10px]">
+                      Usage Limits
+                    </span>
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-2xl font-mono font-black text-white">
+                        {billing.usedCalls} 
+                        <span className="text-xs text-slate-500 font-normal"> / {billing.callLimit >= 999999 ? 'Unlimited' : `${billing.callLimit} calls`}</span>
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        {billing.callLimit >= 999999 ? '0' : Math.min(100, Math.round((billing.usedCalls / billing.callLimit) * 100))}% Used
+                      </span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full bg-slate-950/60 rounded-full h-2 overflow-hidden border border-white/5">
+                      <div
+                        className="bg-cyan-500 h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${billing.callLimit >= 999999 ? 0 : Math.min(100, Math.round((billing.usedCalls / billing.callLimit) * 100))}%`,
+                          boxShadow: '0 0 8px rgba(6,182,212,0.5)',
+                        }}
+                      />
+                    </div>
+                    <span className="block text-[9px] text-slate-500 leading-normal">
+                      Usage resets monthly. Upgrade plan to expand limits immediately.
+                    </span>
+                  </div>
+
+                </div>
+
+                {/* Plans Selection Grid */}
+                <div className="space-y-3 border-t border-white/5 pt-5">
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                     <CreditCard className="w-4 h-4 text-cyan-400" />
-                    Subscription Plan Settings
+                    Available Subscription Plans
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     
                     {/* Starter */}
                     <div
                       onClick={() => setSelectedPlan('starter')}
-                      className={`glass p-4 rounded-xl border cursor-pointer transition-all ${
+                      className={`glass p-4 rounded-xl border cursor-pointer transition-all relative overflow-hidden flex flex-col justify-between ${
                         selectedPlan === 'starter' ? 'border-cyan-500 bg-cyan-950/5 shadow' : 'border-white/5 hover:border-white/10'
                       }`}
                     >
-                      <span className="block font-bold text-white text-sm">Starter</span>
-                      <span className="block text-slate-400 text-lg font-mono font-bold mt-1">$49<span className="text-[10px] font-normal">/mo</span></span>
-                      <span className="block text-[9px] text-slate-500 mt-2">Up to 100 calls/mo • 10 GB Storage • Basic QA</span>
+                      {billing.planName.toLowerCase() === 'starter' && (
+                        <div className="absolute top-0 right-0 bg-cyan-500 text-slate-950 text-[7px] font-black px-2 py-0.5 rounded-bl uppercase tracking-wider">Current</div>
+                      )}
+                      <div>
+                        <span className="block font-bold text-white text-sm">Starter</span>
+                        <span className="block text-slate-400 text-lg font-mono font-bold mt-1">$49<span className="text-[10px] font-normal">/mo</span></span>
+                      </div>
+                      <span className="block text-[9px] text-slate-500 mt-4 leading-relaxed">Up to 100 calls/mo • Basic QA Auditing • Standard AI Reports</span>
                     </div>
 
-                    {/* Professional */}
+                    {/* Growth */}
                     <div
-                      onClick={() => setSelectedPlan('professional')}
-                      className={`glass p-4 rounded-xl border cursor-pointer transition-all ${
-                        selectedPlan === 'professional' ? 'border-cyan-500 bg-cyan-950/5 shadow' : 'border-white/5 hover:border-white/10'
+                      onClick={() => setSelectedPlan('growth')}
+                      className={`glass p-4 rounded-xl border cursor-pointer transition-all relative overflow-hidden flex flex-col justify-between ${
+                        selectedPlan === 'growth' ? 'border-cyan-500 bg-cyan-950/5 shadow' : 'border-white/5 hover:border-white/10'
                       }`}
                     >
-                      <span className="block font-bold text-white text-sm">Professional</span>
-                      <span className="block text-slate-400 text-lg font-mono font-bold mt-1">$199<span className="text-[10px] font-normal">/mo</span></span>
-                      <span className="block text-[9px] text-slate-500 mt-2">Up to 500 calls/mo • 50 GB Storage • Advanced CRM</span>
+                      {billing.planName.toLowerCase() === 'growth' && (
+                        <div className="absolute top-0 right-0 bg-cyan-500 text-slate-950 text-[7px] font-black px-2 py-0.5 rounded-bl uppercase tracking-wider">Current</div>
+                      )}
+                      <div>
+                        <span className="block font-bold text-white text-sm">Growth</span>
+                        <span className="block text-slate-400 text-lg font-mono font-bold mt-1">$129<span className="text-[10px] font-normal">/mo</span></span>
+                      </div>
+                      <span className="block text-[9px] text-slate-500 mt-4 leading-relaxed">Up to 500 calls/mo • CRM Integration • Soft Skills Coaching</span>
+                    </div>
+
+                    {/* Business */}
+                    <div
+                      onClick={() => setSelectedPlan('business')}
+                      className={`glass p-4 rounded-xl border cursor-pointer transition-all relative overflow-hidden flex flex-col justify-between ${
+                        selectedPlan === 'business' ? 'border-cyan-500 bg-cyan-950/5 shadow' : 'border-white/5 hover:border-white/10'
+                      }`}
+                    >
+                      {billing.planName.toLowerCase() === 'business' && (
+                        <div className="absolute top-0 right-0 bg-cyan-500 text-slate-950 text-[7px] font-black px-2 py-0.5 rounded-bl uppercase tracking-wider">Current</div>
+                      )}
+                      <div>
+                        <span className="block font-bold text-white text-sm">Business</span>
+                        <span className="block text-slate-400 text-lg font-mono font-bold mt-1">$299<span className="text-[10px] font-normal">/mo</span></span>
+                      </div>
+                      <span className="block text-[9px] text-slate-500 mt-4 leading-relaxed">Up to 2,500 calls/mo • Custom QA Rubrics • Premium Analytics</span>
                     </div>
 
                     {/* Enterprise */}
                     <div
                       onClick={() => setSelectedPlan('enterprise')}
-                      className={`glass p-4 rounded-xl border cursor-pointer transition-all relative overflow-hidden ${
+                      className={`glass p-4 rounded-xl border cursor-pointer transition-all relative overflow-hidden flex flex-col justify-between ${
                         selectedPlan === 'enterprise' ? 'border-cyan-500 bg-cyan-950/5 shadow' : 'border-white/5 hover:border-white/10'
                       }`}
                     >
-                      <div className="absolute top-0 right-0 bg-cyan-500 text-slate-950 text-[7px] font-black px-2 py-0.5 rounded-bl uppercase tracking-wider">
-                        Active
+                      {billing.planName.toLowerCase() === 'enterprise' && (
+                        <div className="absolute top-0 right-0 bg-cyan-500 text-slate-950 text-[7px] font-black px-2 py-0.5 rounded-bl uppercase tracking-wider">Current</div>
+                      )}
+                      <div>
+                        <span className="block font-bold text-white text-sm">Enterprise</span>
+                        <span className="block text-slate-400 text-lg font-mono font-bold mt-1">$999<span className="text-[10px] font-normal">/mo</span></span>
                       </div>
-                      <span className="block font-bold text-white text-sm">Enterprise</span>
-                      <span className="block text-slate-400 text-lg font-mono font-bold mt-1">$499<span className="text-[10px] font-normal">/mo</span></span>
-                      <span className="block text-[9px] text-slate-500 mt-2">Unlimited calls • 100 GB Storage • Custom AI Coach</span>
+                      <span className="block text-[9px] text-slate-500 mt-4 leading-relaxed">Unlimited calls • Dedicated BPO Support • Full AI Models Control</span>
                     </div>
 
                   </div>
+
+                  {/* Pricing Actions */}
+                  {selectedPlan !== billing.planName.toLowerCase() && (
+                    <div className="pt-2 flex justify-end">
+                      <button
+                        type="button"
+                        disabled={isRedirecting}
+                        onClick={handleUpgradeOrCheckout}
+                        className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-5 py-2.5 rounded-lg text-[10px] flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-[1.01]"
+                      >
+                        {isRedirecting ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                            Upgrade to {selectedPlan.toUpperCase()} Plan
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Billing History */}
                 <div className="space-y-3 border-t border-white/5 pt-5">
                   <span className="font-bold text-slate-300 block">Billing Invoice History</span>
                   <div className="glass rounded-xl border border-white/5 overflow-hidden">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-slate-950/40 text-slate-400 font-bold border-b border-white/5 text-[10px]">
-                          <th className="px-4 py-2.5">Invoice ID</th>
-                          <th className="px-4 py-2.5">Billing Date</th>
-                          <th className="px-4 py-2.5">Amount</th>
-                          <th className="px-4 py-2.5 text-center">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/5 text-slate-300 font-mono text-[10px]">
-                        {billingHistory.map(b => (
-                          <tr key={b.invoice}>
-                            <td className="px-4 py-2.5 font-bold text-white">{b.invoice}</td>
-                            <td className="px-4 py-2.5 text-slate-400">{b.date}</td>
-                            <td className="px-4 py-2.5 text-slate-400">{b.amount}</td>
-                            <td className="px-4 py-2.5 text-center">
-                              <span className="bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-0.5 rounded-full text-[8px] font-bold">
-                                {b.status}
-                              </span>
-                            </td>
+                    {billing.paymentHistories.length === 0 ? (
+                      <div className="p-6 text-center text-slate-500 text-[10px]">
+                        No payment history logs registered.
+                      </div>
+                    ) : (
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-950/40 text-slate-400 font-bold border-b border-white/5 text-[10px]">
+                            <th className="px-4 py-2.5">Invoice ID</th>
+                            <th className="px-4 py-2.5">Billing Date</th>
+                            <th className="px-4 py-2.5">Amount</th>
+                            <th className="px-4 py-2.5 text-center">Status</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-white/5 text-slate-300 font-mono text-[10px]">
+                          {billing.paymentHistories.map(b => (
+                            <tr key={b.invoice}>
+                              <td className="px-4 py-2.5 font-bold text-white truncate max-w-[120px]">{b.invoice}</td>
+                              <td className="px-4 py-2.5 text-slate-400">{b.date}</td>
+                              <td className="px-4 py-2.5 text-slate-400">{b.amount}</td>
+                              <td className="px-4 py-2.5 text-center">
+                                <span className="bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-0.5 rounded-full text-[8px] font-bold">
+                                  {b.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
                   </div>
                 </div>
 
