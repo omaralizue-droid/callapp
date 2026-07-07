@@ -42,9 +42,9 @@ const PENDING_AUDITS = [
 ]
 
 const getPriorityStyle = (priority: string) => {
-  if (priority === 'High') return 'bg-rose-50 text-rose-700 border-rose-200'
-  if (priority === 'Medium') return 'bg-amber-50 text-amber-700 border-amber-200'
-  return 'bg-slate-100 text-slate-600 border-slate-200'
+  if (priority === 'High') return { bg: 'rgba(244,63,94,0.15)', border: 'rgba(244,63,94,0.3)', color: '#fca5a5' }
+  if (priority === 'Medium') return { bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)', color: '#fcd34d' }
+  return { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)', color: '#94a3b8' }
 }
 
 export default async function QABoardPage() {
@@ -55,18 +55,27 @@ export default async function QABoardPage() {
 
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 text-indigo-600" />
-            QA Grading Console
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">Grade agent conversations against corporate compliance guidelines</p>
+        <div className="flex items-center gap-3">
+          <ClipboardList className="w-5 h-5" style={{ color: '#818cf8' }} />
+          <div>
+            <h1 className="text-xl font-bold text-white">QA Grading Console</h1>
+            <p className="text-xs mt-0.5" style={{ color: '#475569' }}>
+              Grade agent conversations against corporate compliance guidelines
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-indigo-700">
+        <div
+          className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-semibold"
+          style={{
+            background: 'rgba(79,70,229,0.15)',
+            border: '1px solid rgba(99,102,241,0.3)',
+            color: '#818cf8',
+          }}
+        >
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
           </span>
           Queue Status: 3 Pending
         </div>
@@ -76,75 +85,109 @@ export default async function QABoardPage() {
 
         {/* Evaluation Worklist */}
         <div className="lg:col-span-3">
-          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/60 flex justify-between items-center">
-              <h3 className="text-sm font-bold text-slate-800">Evaluation Worklist</h3>
-              <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+          <div
+            className="rounded-2xl overflow-hidden animate-fade-in"
+            style={{
+              background: 'rgba(13,21,53,0.7)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              backdropFilter: 'blur(12px)',
+            }}
+          >
+            <div className="px-6 py-4 flex justify-between items-center" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <h3 className="text-sm font-bold text-white">Evaluation Worklist</h3>
+              <div className="flex items-center gap-1.5 text-[10px]" style={{ color: '#475569' }}>
                 <span>Select row to open audio player</span>
-                <span className="bg-slate-200 px-1.5 py-0.5 rounded border border-slate-300 font-bold text-slate-600">Enter</span>
+                <span className="px-1.5 py-0.5 rounded border font-bold" style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', color: '#94a3b8' }}>Enter</span>
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
+            <div className="overflow-x-auto text-xs">
+              <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 text-slate-500 border-b border-slate-200 text-[11px] uppercase tracking-wider">
-                    <th className="px-6 py-3 font-semibold">Recording Detail</th>
-                    <th className="px-6 py-3 font-semibold">Assigned Agent</th>
-                    <th className="px-6 py-3 font-semibold">Duration</th>
-                    <th className="px-6 py-3 font-semibold">Priority</th>
-                    <th className="px-6 py-3 font-semibold text-right">Action</th>
+                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    {['Recording Detail', 'Assigned Agent', 'Duration', 'Priority', 'Action'].map(h => (
+                      <th
+                        key={h}
+                        className={`px-6 py-3 font-semibold uppercase tracking-wider text-[10px] ${h === 'Action' ? 'text-right' : ''}`}
+                        style={{ color: '#334155' }}
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {PENDING_AUDITS.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50/70 transition-colors group">
-
-                      <td className="px-6 py-4 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <FileAudio className="w-4 h-4 text-slate-400 shrink-0 group-hover:text-indigo-600 transition-colors" />
-                          <span className="font-bold text-slate-800 block truncate max-w-xs">{item.title}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono pl-6">
-                          <Calendar className="w-3.5 h-3.5" />
-                          <span>Uploaded {item.date}</span>
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-4 font-mono">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center">
-                            <User2 className="w-3 h-3 text-indigo-600" />
+                <tbody>
+                  {PENDING_AUDITS.map((item) => {
+                    const priorityBadge = getPriorityStyle(item.priority)
+                    return (
+                      <tr
+                        key={item.id}
+                        className="transition-colors group hover:bg-white/[0.02]"
+                        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                      >
+                        <td className="px-6 py-4 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <FileAudio className="w-4 h-4 shrink-0 transition-colors" style={{ color: '#64748b' }} />
+                            <span className="font-bold text-white block truncate max-w-xs">{item.title}</span>
                           </div>
-                          <span className="text-slate-700">{item.agent}</span>
-                        </div>
-                      </td>
+                          <div className="flex items-center gap-1.5 text-[10px] font-mono pl-6" style={{ color: '#475569' }}>
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>Uploaded {item.date}</span>
+                          </div>
+                        </td>
 
-                      <td className="px-6 py-4 font-mono text-slate-500">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-slate-400" />
-                          {item.duration}
-                        </div>
-                      </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                              style={{
+                                background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                                boxShadow: '0 0 8px rgba(79,70,229,0.4)',
+                              }}
+                            >
+                              <User2 className="w-3 h-3 text-white" />
+                            </div>
+                            <span style={{ color: '#94a3b8' }}>{item.agent}</span>
+                          </div>
+                        </td>
 
-                      <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${getPriorityStyle(item.priority)}`}>
-                          {item.priority}
-                        </span>
-                      </td>
+                        <td className="px-6 py-4 font-mono" style={{ color: '#94a3b8' }}>
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" style={{ color: '#334155' }} />
+                            {item.duration}
+                          </div>
+                        </td>
 
-                      <td className="px-6 py-4 text-right">
-                        <Link
-                          href={`/dashboard/calls/${item.id}`}
-                          className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg font-bold transition-all text-[11px]"
-                        >
-                          <Play className="w-3 h-3 fill-white" />
-                          Audit
-                        </Link>
-                      </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className="px-2.5 py-1 rounded-full text-[10px] font-bold border"
+                            style={{
+                              background: priorityBadge.bg,
+                              borderColor: priorityBadge.border,
+                              color: priorityBadge.color,
+                            }}
+                          >
+                            {item.priority}
+                          </span>
+                        </td>
 
-                    </tr>
-                  ))}
+                        <td className="px-6 py-4 text-right">
+                          <Link
+                            href={`/dashboard/calls/${item.id}`}
+                            className="inline-flex items-center gap-1.5 text-white px-3.5 py-1.5 rounded-xl font-bold transition-all text-[11px]"
+                            style={{
+                              background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                              boxShadow: '0 4px 15px rgba(79,70,229,0.3)',
+                            }}
+                          >
+                            <Play className="w-3 h-3 fill-white" />
+                            Audit
+                          </Link>
+                        </td>
+
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -153,32 +196,54 @@ export default async function QABoardPage() {
 
         {/* Right Sidebar */}
         <div className="lg:col-span-1 space-y-4">
-
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-            <h3 className="text-sm font-bold text-slate-800">Evaluation Rubric</h3>
-            <p className="text-[10px] text-slate-500 leading-relaxed">
+          <div
+            className="p-5 rounded-2xl space-y-4"
+            style={{
+              background: 'rgba(13,21,53,0.7)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              backdropFilter: 'blur(12px)',
+            }}
+          >
+            <h3 className="text-sm font-bold text-white">Evaluation Rubric</h3>
+            <p className="text-[10px] leading-relaxed" style={{ color: '#475569' }}>
               Standard corporate evaluation metrics. Call audits are graded across 3 core sectors:
             </p>
             <div className="space-y-2 text-xs">
               {[
-                { label: 'Greeting & Disclosure', tag: 'Mandatory', tagColor: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-                { label: 'Identity Security Checks', tag: 'Critical', tagColor: 'bg-rose-50 text-rose-700 border-rose-200' },
-                { label: 'Professional Etiquette', tag: 'Graded (0–5)', tagColor: 'bg-slate-100 text-slate-600 border-slate-200' },
+                { label: 'Greeting & Disclosure', tag: 'Mandatory', bg: 'rgba(79,70,229,0.15)', border: 'rgba(79,70,229,0.3)', color: '#818cf8' },
+                { label: 'Identity Security Checks', tag: 'Critical', bg: 'rgba(244,63,94,0.15)', border: 'rgba(244,63,94,0.3)', color: '#fca5a5' },
+                { label: 'Professional Etiquette', tag: 'Graded (0–5)', bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)', color: '#94a3b8' },
               ].map((r, i) => (
-                <div key={i} className="flex justify-between items-center py-2 border-b border-slate-100 last:border-0">
-                  <span className="text-slate-700 font-medium">{r.label}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${r.tagColor}`}>{r.tag}</span>
+                <div key={i} className="flex justify-between items-center py-2 border-b" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                  <span className="font-medium text-white">{r.label}</span>
+                  <span
+                    className="px-2 py-0.5 rounded-full text-[10px] font-bold border"
+                    style={{
+                      background: r.bg,
+                      borderColor: r.border,
+                      color: r.color,
+                    }}
+                  >
+                    {r.tag}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-emerald-600" />
+          <div
+            className="p-5 rounded-2xl space-y-4"
+            style={{
+              background: 'rgba(13,21,53,0.7)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              backdropFilter: 'blur(12px)',
+            }}
+          >
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" style={{ color: '#6ee7b7' }} />
               Grading Guidelines
             </h3>
-            <ul className="space-y-2 text-[11px] text-slate-500 leading-relaxed">
+            <ul className="space-y-2 text-[11px] leading-relaxed" style={{ color: '#475569' }}>
               {[
                 'Open transcript and listen alongside audio.',
                 'Toggle rubric checks as agent reads scripts.',
@@ -186,17 +251,25 @@ export default async function QABoardPage() {
                 'Sync notes to integrated CRM contacts.',
               ].map((g, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                  {g}
+                  <span
+                    className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5"
+                    style={{
+                      background: 'rgba(16,185,129,0.15)',
+                      border: '1px solid rgba(16,185,129,0.3)',
+                      color: '#6ee7b7',
+                    }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span style={{ color: '#94a3b8' }}>{g}</span>
                 </li>
               ))}
             </ul>
-            <div className="pt-2 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400">
+            <div className="pt-2 flex justify-between items-center text-[10px]" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', color: '#334155' }}>
               <span>Help Center</span>
-              <HelpCircle className="w-3.5 h-3.5 hover:text-indigo-600 cursor-pointer transition-colors" />
+              <HelpCircle className="w-3.5 h-3.5 hover:text-indigo-400 cursor-pointer transition-colors" />
             </div>
           </div>
-
         </div>
 
       </div>

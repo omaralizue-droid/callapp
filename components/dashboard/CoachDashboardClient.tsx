@@ -23,7 +23,6 @@ interface ParsedCoachCall {
   aiCoachReport: AICoachReport | null
 }
 
-// High-fidelity fallback seed data for demonstration
 const MOCK_COACH_CALLS = [
   {
     id: 'call-1',
@@ -137,16 +136,13 @@ export default function CoachDashboardClient({ initialCalls, userRole }: CoachDa
   const [filter, setFilter] = useState<'all' | 'interruption' | 'silence' | 'tone' | 'script' | 'compliance'>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Determine if database contains populated reports; if not, merge or fall back to high-fidelity mocks
   const dbHasReports = initialCalls && initialCalls.length > 0 && initialCalls.some(c => (c.aiCoachReport?.insights?.length ?? 0) > 0)
-  
-  const calls = dbHasReports 
+  const calls = dbHasReports
     ? initialCalls.filter(c => c.aiCoachReport)
-    : userRole === 'AGENT' 
+    : userRole === 'AGENT'
       ? MOCK_COACH_CALLS.filter(c => c.agentName === 'Alex Rodriguez')
       : MOCK_COACH_CALLS
 
-  // Aggregate metrics from all calls
   const totals = calls.reduce(
     (acc, call) => {
       const dets = call.aiCoachReport?.detections
@@ -163,37 +159,20 @@ export default function CoachDashboardClient({ initialCalls, userRole }: CoachDa
     { alerts: 0, interruptions: 0, silences: 0, tones: 0, scripts: 0, compliances: 0 }
   )
 
-  // Compile all insights into a single chronological array
   const allInsights = calls.flatMap((call) => {
     const insights = call.aiCoachReport?.insights || []
     return insights.map((ins: AICoachInsight) => {
-      // Determine type of insight based on category keyword matching
       let type: 'interruption' | 'silence' | 'tone' | 'script' | 'compliance' = 'tone'
       const advice = ins.coachingAdvice.toLowerCase()
       const original = ins.originalTurn.toLowerCase()
-
-      if (advice.includes('interrupt') || original.includes('interrupt')) {
-        type = 'interruption'
-      } else if (advice.includes('silence') || advice.includes('pause')) {
-        type = 'silence'
-      } else if (advice.includes('compliance') || advice.includes('recording') || advice.includes('monitoring') || advice.includes('disclosure')) {
-        type = 'compliance'
-      } else if (advice.includes('script') || advice.includes('greeting') || advice.includes('standard')) {
-        type = 'script'
-      }
-
-      return {
-        ...ins,
-        type,
-        callId: call.id,
-        callTitle: call.title,
-        agentName: call.agentName,
-        createdAt: call.createdAt
-      }
+      if (advice.includes('interrupt') || original.includes('interrupt')) type = 'interruption'
+      else if (advice.includes('silence') || advice.includes('pause')) type = 'silence'
+      else if (advice.includes('compliance') || advice.includes('recording') || advice.includes('monitoring') || advice.includes('disclosure')) type = 'compliance'
+      else if (advice.includes('script') || advice.includes('greeting') || advice.includes('standard')) type = 'script'
+      return { ...ins, type, callId: call.id, callTitle: call.title, agentName: call.agentName, createdAt: call.createdAt }
     })
   })
 
-  // Filter insights by tab and search query
   const filteredInsights = allInsights.filter((ins) => {
     const matchesTab = filter === 'all' || ins.type === filter
     const matchesSearch =
@@ -205,7 +184,6 @@ export default function CoachDashboardClient({ initialCalls, userRole }: CoachDa
     return matchesTab && matchesSearch
   })
 
-  // Determine focus directive
   const getFocusArea = () => {
     const counts = [
       { key: 'compliance', name: 'Compliance Policy Disclosure', count: totals.compliances },
@@ -215,7 +193,6 @@ export default function CoachDashboardClient({ initialCalls, userRole }: CoachDa
       { key: 'script', name: 'Dialogue Script Flow Adherence', count: totals.scripts },
     ]
     const highest = counts.sort((a, b) => b.count - a.count)[0]
-    
     if (highest.count > 0) {
       return {
         title: `Priority Coaching: ${highest.name}`,
@@ -223,7 +200,6 @@ export default function CoachDashboardClient({ initialCalls, userRole }: CoachDa
         action: `Review details inside the ${highest.key === 'compliance' ? 'Compliance Gaps' : highest.key === 'interruption' ? 'Interruptions' : highest.key === 'silence' ? 'Long Silences' : highest.key === 'tone' ? 'Tone Gaps' : 'Missed Scripts'} tab below.`
       }
     }
-
     return {
       title: 'AI Coaching Target: Exceptional Grade Maintain',
       description: 'Zero high-priority soft skill gaps or script omissions have been logged. Keep up the high standard!',
@@ -233,27 +209,30 @@ export default function CoachDashboardClient({ initialCalls, userRole }: CoachDa
 
   const focusArea = getFocusArea()
 
-  // Format time
   const formatTime = (timeStr: string) => {
-    return new Date(timeStr).toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    return new Date(timeStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
   }
+
+  const tabItems = [
+    { key: 'all', name: 'Coaching Alerts', count: totals.alerts, icon: <Sparkles className="w-4 h-4 text-indigo-400" />, activeBg: 'rgba(79,70,229,0.15)', border: 'rgba(99,102,241,0.3)', glow: 'rgba(79,70,229,0.35)', textColor: '#818cf8' },
+    { key: 'interruption', name: 'Interruptions', count: totals.interruptions, icon: <MessageSquare className="w-4 h-4 text-rose-400" />, activeBg: 'rgba(244,63,94,0.15)', border: 'rgba(244,63,94,0.3)', glow: 'rgba(244,63,94,0.35)', textColor: '#fca5a5' },
+    { key: 'silence', name: 'Long Silences', count: totals.silences, icon: <VolumeX className="w-4 h-4 text-amber-400" />, activeBg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)', glow: 'rgba(245,158,11,0.35)', textColor: '#fcd34d' },
+    { key: 'tone', name: 'Tone Gaps', count: totals.tones, icon: <Smile className="w-4 h-4 text-purple-400" />, activeBg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', glow: 'rgba(168,85,247,0.35)', textColor: '#c4b5fd' },
+    { key: 'script', name: 'Missed Script', count: totals.scripts, icon: <FileText className="w-4 h-4 text-indigo-400" />, activeBg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.3)', glow: 'rgba(99,102,241,0.35)', textColor: '#a5b4fc' },
+    { key: 'compliance', name: 'Compliance Gaps', count: totals.compliances, icon: <ShieldAlert className="w-4 h-4 text-emerald-400" />, activeBg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.3)', glow: 'rgba(16,185,129,0.35)', textColor: '#6ee7b7' },
+  ]
 
   return (
     <div className="space-y-6 text-xs select-none">
-      
-      {/* 1. Header Title */}
+
+      {/* 1. Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-cyan-400" />
+          <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+            <Sparkles className="w-5 h-5" style={{ color: '#818cf8' }} />
             AI Coach & Speech Analytics
           </h2>
-          <p className="text-[10px] text-slate-500 mt-1">
+          <p className="text-[10px] mt-1" style={{ color: '#475569' }}>
             {userRole === 'AGENT'
               ? 'Review your personalized speech corrections, soft skill tips, and dialogue suggestions'
               : 'Audit workspace coaching alerts, conversation corrections, and soft skill improvements'}
@@ -261,219 +240,316 @@ export default function CoachDashboardClient({ initialCalls, userRole }: CoachDa
         </div>
       </div>
 
-      {/* 2. Aggregate Stats Cards Grid */}
+      {/* 2. Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-        {[
-          { key: 'all', name: 'Coaching Alerts', count: totals.alerts, icon: <Sparkles className="w-4 h-4 text-cyan-400" />, color: 'border-cyan-500/10 hover:border-cyan-500/30' },
-          { key: 'interruption', name: 'Interruptions', count: totals.interruptions, icon: <MessageSquare className="w-4 h-4 text-rose-400" />, color: 'border-rose-500/10 hover:border-rose-500/30' },
-          { key: 'silence', name: 'Long Silences', count: totals.silences, icon: <VolumeX className="w-4 h-4 text-amber-400" />, color: 'border-amber-500/10 hover:border-amber-500/30' },
-          { key: 'tone', name: 'Tone Gaps', count: totals.tones, icon: <Smile className="w-4 h-4 text-purple-400" />, color: 'border-purple-500/10 hover:border-purple-500/30' },
-          { key: 'script', name: 'Missed Script', count: totals.scripts, icon: <FileText className="w-4 h-4 text-indigo-400" />, color: 'border-indigo-500/10 hover:border-indigo-500/30' },
-          { key: 'compliance', name: 'Compliance Gaps', count: totals.compliances, icon: <ShieldAlert className="w-4 h-4 text-emerald-400" />, color: 'border-emerald-500/10 hover:border-emerald-500/30' },
-        ].map((item) => (
-          <button
-            key={item.key}
-            onClick={() => setFilter(item.key as typeof filter)}
-            className={`glass rounded-xl p-4 border text-left space-y-3 cursor-pointer transition-all duration-300 ${
-              filter === item.key
-                ? 'bg-cyan-500/10 border-cyan-500/40 shadow-lg shadow-cyan-950/20 scale-[1.02]'
-                : `bg-slate-900/10 ${item.color}`
-            }`}
-          >
-            <div className="flex justify-between items-center">
-              <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider truncate">{item.name}</span>
-              <div className="w-6 h-6 bg-slate-950/50 rounded-lg flex items-center justify-center border border-white/5">
-                {item.icon}
+        {tabItems.map((item) => {
+          const isActive = filter === item.key
+          return (
+            <button
+              key={item.key}
+              onClick={() => setFilter(item.key as typeof filter)}
+              className="rounded-2xl p-4 text-left space-y-3 cursor-pointer transition-all duration-300 hover:scale-[1.02]"
+              style={{
+                background: isActive ? item.activeBg : 'rgba(13,21,53,0.7)',
+                borderColor: isActive ? item.border : 'rgba(255,255,255,0.07)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                boxShadow: isActive ? `0 0 20px ${item.glow}` : 'none',
+                backdropFilter: 'blur(12px)',
+              }}
+            >
+              <div className="flex justify-between items-center gap-2">
+                <span className="text-[9px] uppercase font-bold tracking-widest truncate" style={{ color: isActive ? '#94a3b8' : '#334155' }}>
+                  {item.name.split(' ')[0]}
+                </span>
+                <div
+                  className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                  }}
+                >
+                  {item.icon}
+                </div>
               </div>
-            </div>
-            <span className="text-xl font-black text-white block tracking-tight">{item.count}</span>
-          </button>
-        ))}
+              <span className="text-xl font-black block tracking-tight" style={{ color: isActive ? item.textColor : 'white' }}>
+                {item.count}
+              </span>
+            </button>
+          )
+        })}
       </div>
 
-      {/* 3. Priority Recommendation Block */}
-      <div className="glass rounded-xl p-5 border border-cyan-500/10 bg-cyan-950/[0.01] flex flex-col md:flex-row gap-5 justify-between items-start md:items-center">
+      {/* 3. Priority Focus Block */}
+      <div
+        className="rounded-2xl p-5 flex flex-col md:flex-row gap-5 justify-between items-start md:items-center border"
+        style={{
+          background: 'rgba(79,70,229,0.1)',
+          borderColor: 'rgba(99,102,241,0.25)',
+          boxShadow: '0 0 25px rgba(79,70,229,0.1)',
+        }}
+      >
         <div className="space-y-1.5 max-w-2xl">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-cyan-500 text-slate-950 text-[9px] font-black uppercase tracking-wider rounded">
+            <span
+              className="px-2 py-0.5 text-white text-[9px] font-black uppercase tracking-wider rounded-lg"
+              style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }}
+            >
               Active Focus
             </span>
             <h4 className="text-xs font-bold text-white uppercase tracking-wider">{focusArea.title}</h4>
           </div>
-          <p className="text-[10px] text-slate-400 leading-relaxed">{focusArea.description}</p>
+          <p className="text-[10px] leading-relaxed" style={{ color: '#94a3b8' }}>{focusArea.description}</p>
         </div>
-        <div className="text-[10px] font-bold text-cyan-400 italic font-mono shrink-0 select-none bg-slate-950/60 px-3 py-1.5 rounded-lg border border-white/5">
+        <div
+          className="text-[10px] font-bold italic font-mono shrink-0 select-none px-3.5 py-2 rounded-xl border"
+          style={{
+            background: 'rgba(79,70,229,0.15)',
+            borderColor: 'rgba(99,102,241,0.3)',
+            color: '#818cf8',
+          }}
+        >
           {focusArea.action}
         </div>
       </div>
 
-      {/* 4. Insight Search & Tab Menu */}
+      {/* 4. Tab Menu & Search */}
       <div className="flex flex-wrap justify-between items-center gap-4 pt-2">
-        
-        {/* Navigation Tab links */}
-        <div className="flex border-b border-white/5 gap-5">
-          {[
-            { id: 'all', name: 'All Alerts' },
-            { id: 'interruption', name: 'Interruptions' },
-            { id: 'silence', name: 'Long Silences' },
-            { id: 'tone', name: 'Tone Gaps' },
-            { id: 'script', name: 'Missed Script' },
-            { id: 'compliance', name: 'Compliance Gaps' },
-          ].map((tab) => (
+        <div className="flex border-b gap-5" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+          {tabItems.map((tab) => (
             <button
-              key={tab.id}
-              onClick={() => setFilter(tab.id as typeof filter)}
-              className={`pb-2.5 text-xs font-bold transition-all relative cursor-pointer ${
-                filter === tab.id
-                  ? 'text-cyan-400 font-black'
-                  : 'text-slate-400 hover:text-white'
-              }`}
+              key={tab.key}
+              onClick={() => setFilter(tab.key as typeof filter)}
+              className="pb-2.5 text-xs font-bold transition-all relative cursor-pointer"
+              style={{
+                color: filter === tab.key ? '#818cf8' : '#475569',
+              }}
             >
               {tab.name}
-              {filter === tab.id && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 animate-fade-in" />
+              {filter === tab.key && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-indigo-400" />
               )}
             </button>
           ))}
         </div>
-
-        {/* Search Input bar */}
-        <div className="flex items-center gap-2 bg-slate-900 border border-white/5 rounded-lg px-3 py-2 w-full sm:w-64">
-          <Search className="w-3.5 h-3.5 text-slate-500" />
+        <div
+          className="flex items-center gap-2 rounded-xl px-3 py-2 w-full sm:w-64"
+          style={{
+            background: 'rgba(10,17,40,0.8)',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}
+        >
+          <Search className="w-3.5 h-3.5" style={{ color: '#334155' }} />
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search coaching directives..."
-            className="bg-transparent border-none text-[10px] placeholder-slate-500 outline-none text-white w-full"
+            className="bg-transparent border-none text-[10px] placeholder-slate-600 outline-none text-white w-full"
           />
         </div>
-
       </div>
 
-      {/* 5. Insight Corrections List */}
+      {/* 5. Insight Cards */}
       <div className="space-y-4">
         {filteredInsights.length > 0 ? (
           filteredInsights.map((insight) => {
-            
-            // Format tag colors
             let categoryLabel = 'Speech Audit Alert'
-            let categoryBg = 'bg-slate-800 text-slate-300 border-white/5'
+            let categoryBg = 'rgba(255,255,255,0.05)'
+            let categoryBorder = 'rgba(255,255,255,0.1)'
+            let categoryColor = '#94a3b8'
+
             if (insight.type === 'interruption') {
               categoryLabel = 'Interruption Detected'
-              categoryBg = 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+              categoryBg = 'rgba(244,63,94,0.15)'
+              categoryBorder = 'rgba(244,63,94,0.3)'
+              categoryColor = '#fca5a5'
             } else if (insight.type === 'silence') {
               categoryLabel = 'Dead Air Silence'
-              categoryBg = 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+              categoryBg = 'rgba(245,158,11,0.15)'
+              categoryBorder = 'rgba(245,158,11,0.3)'
+              categoryColor = '#fcd34d'
             } else if (insight.type === 'tone') {
               categoryLabel = 'Empathy / Tone Mismatch'
-              categoryBg = 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+              categoryBg = 'rgba(168,85,247,0.15)'
+              categoryBorder = 'rgba(168,85,247,0.3)'
+              categoryColor = '#c4b5fd'
             } else if (insight.type === 'script') {
               categoryLabel = 'Script Directive Mismatch'
-              categoryBg = 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+              categoryBg = 'rgba(99,102,241,0.15)'
+              categoryBorder = 'rgba(99,102,241,0.3)'
+              categoryColor = '#a5b4fc'
             } else if (insight.type === 'compliance') {
               categoryLabel = 'Monitored Compliance Gap'
-              categoryBg = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+              categoryBg = 'rgba(16,185,129,0.15)'
+              categoryBorder = 'rgba(16,185,129,0.3)'
+              categoryColor = '#6ee7b7'
             }
 
             return (
-              <div key={insight.id} className="glass rounded-xl p-5 border border-white/5 space-y-4 hover:border-white/10 transition-all duration-300 relative overflow-hidden">
-                
-                {/* Header info */}
-                <div className="flex justify-between items-start gap-4 flex-wrap border-b border-white/5 pb-3">
+              <div
+                key={insight.id}
+                className="rounded-2xl p-5 space-y-4 transition-all duration-200"
+                style={{
+                  background: 'rgba(13,21,53,0.7)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  backdropFilter: 'blur(12px)',
+                }}
+              >
+                {/* Header */}
+                <div className="flex justify-between items-start gap-4 flex-wrap pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${categoryBg}`}>
+                      <span
+                        className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border"
+                        style={{
+                          background: categoryBg,
+                          borderColor: categoryBorder,
+                          color: categoryColor,
+                        }}
+                      >
                         {categoryLabel}
                       </span>
-                      <span className="bg-slate-900 text-slate-400 font-mono text-[9px] px-2 py-0.5 rounded border border-white/5">
+                      <span
+                        className="font-mono text-[9px] px-2 py-0.5 rounded border"
+                        style={{
+                          background: 'rgba(255,255,255,0.03)',
+                          borderColor: 'rgba(255,255,255,0.06)',
+                          color: '#475569',
+                        }}
+                      >
                         Time offset: {insight.timestamp}
                       </span>
                     </div>
-                    
                     <div className="flex items-center gap-2 pt-1">
-                      <PhoneCall className="w-3.5 h-3.5 text-slate-500" />
-                      <span className="font-bold text-slate-300">Call: {insight.callTitle}</span>
-                      <span className="text-slate-600">•</span>
-                      <span className="text-[10px] text-slate-500 font-semibold">{formatTime(insight.createdAt)}</span>
+                      <PhoneCall className="w-3.5 h-3.5" style={{ color: '#334155' }} />
+                      <span className="font-bold text-white">Call: {insight.callTitle}</span>
+                      <span style={{ color: 'rgba(255,255,255,0.1)' }}>•</span>
+                      <span className="text-[10px]" style={{ color: '#475569' }}>{formatTime(insight.createdAt)}</span>
                     </div>
                   </div>
-
                   <div className="flex items-center gap-4">
                     {userRole !== 'AGENT' && (
                       <div className="text-right">
-                        <span className="text-[9px] uppercase font-bold text-slate-500 block">Assigned Agent</span>
+                        <span className="text-[9px] uppercase font-bold block" style={{ color: '#334155' }}>Assigned Agent</span>
                         <span className="text-xs font-bold text-white block">{insight.agentName}</span>
                       </div>
                     )}
-
                     <Link
                       href={`/dashboard/calls/${insight.callId}`}
-                      className="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white px-3 py-2 rounded-lg border border-white/5 font-bold flex items-center gap-1.5 transition-all text-[10px]"
+                      className="px-3.5 py-2 rounded-xl font-bold flex items-center gap-1.5 transition-all text-[10px]"
+                      style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: 'var(--text-primary)',
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = 'rgba(79,70,229,0.2)'
+                        e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)'
+                        e.currentTarget.style.color = '#818cf8'
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
+                        e.currentTarget.style.color = 'var(--text-primary)'
+                      }}
                     >
                       <Eye className="w-3.5 h-3.5" /> View Graded Call
                     </Link>
                   </div>
                 </div>
 
-                {/* Coaching content grid */}
+                {/* Coaching grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs">
-                  
-                  {/* Left Column: Directive & Rationale */}
                   <div className="space-y-3.5">
                     <div className="space-y-1">
-                      <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Coaching Directive</span>
-                      <p className="text-slate-200 leading-relaxed font-bold text-[11px] bg-slate-950/40 p-3 rounded-xl border border-white/5">
+                      <span className="text-[9px] uppercase font-bold tracking-widest" style={{ color: '#334155' }}>Coaching Directive</span>
+                      <p
+                        className="leading-relaxed font-semibold text-[11px] p-3 rounded-xl border"
+                        style={{
+                          background: 'rgba(10,17,40,0.8)',
+                          borderColor: 'rgba(255,255,255,0.06)',
+                          color: '#cbd5e1',
+                        }}
+                      >
                         {insight.coachingAdvice}
                       </p>
                     </div>
-
                     <div className="space-y-1">
-                      <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Coaching Rationale (Why it matters)</span>
-                      <p className="text-slate-400 leading-relaxed">
-                        {insight.rationale}
-                      </p>
+                      <span className="text-[9px] uppercase font-bold tracking-widest" style={{ color: '#334155' }}>Coaching Rationale</span>
+                      <p className="leading-relaxed" style={{ color: '#94a3b8' }}>{insight.rationale}</p>
                     </div>
                   </div>
-
-                  {/* Right Column: Comparative dialogue corrections */}
                   <div className="space-y-3.5">
-                    
-                    {/* Original Response */}
-                    <div className="space-y-1 bg-rose-500/[0.01] border border-rose-500/10 rounded-xl p-3.5 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 px-2 py-0.5 bg-rose-500/10 border-b border-l border-rose-500/20 text-rose-400 text-[8px] font-black uppercase tracking-wider rounded-bl-lg">
+                    {/* Original Turn */}
+                    <div
+                      className="space-y-1 rounded-xl p-3.5 relative overflow-hidden border"
+                      style={{
+                        background: 'rgba(244,63,94,0.05)',
+                        borderColor: 'rgba(244,63,94,0.15)',
+                      }}
+                    >
+                      <div
+                        className="absolute top-0 right-0 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-bl-lg border-b border-l"
+                        style={{
+                          background: 'rgba(244,63,94,0.1)',
+                          borderColor: 'rgba(244,63,94,0.15)',
+                          color: '#fca5a5',
+                        }}
+                      >
                         Original Turn
                       </div>
-                      <span className="text-rose-500/80 font-black uppercase tracking-wider text-[8px] block mb-1">
-                        Agent Dialect
-                      </span>
-                      <p className="text-slate-400 italic line-through text-[11px] leading-relaxed select-none">
+                      <span className="font-black uppercase tracking-wider text-[8px] block mb-1" style={{ color: '#f43f5e' }}>Agent Dialect</span>
+                      <p className="italic line-through text-[11px] leading-relaxed select-none" style={{ color: '#fca5a5' }}>
                         &ldquo;{insight.originalTurn}&rdquo;
                       </p>
                     </div>
-
-                    {/* Better Suggested Response */}
-                    <div className="space-y-1 bg-green-500/[0.01] border border-green-500/10 rounded-xl p-3.5 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 px-2 py-0.5 bg-green-500/10 border-b border-l border-green-500/20 text-green-400 text-[8px] font-black uppercase tracking-wider rounded-bl-lg">
+                    {/* Better Response */}
+                    <div
+                      className="space-y-1 rounded-xl p-3.5 relative overflow-hidden border"
+                      style={{
+                        background: 'rgba(16,185,129,0.05)',
+                        borderColor: 'rgba(16,185,129,0.15)',
+                      }}
+                    >
+                      <div
+                        className="absolute top-0 right-0 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-bl-lg border-b border-l"
+                        style={{
+                          background: 'rgba(16,185,129,0.1)',
+                          borderColor: 'rgba(16,185,129,0.15)',
+                          color: '#6ee7b7',
+                        }}
+                      >
                         AI Recommended Response
                       </div>
-                      <span className="text-green-400 font-black uppercase tracking-wider text-[8px] block mb-1">
-                        Optimal Turn Suggestion
-                      </span>
-                      <p className="text-slate-200 font-semibold text-[11px] leading-relaxed">
+                      <span className="font-black uppercase tracking-wider text-[8px] block mb-1" style={{ color: '#10b981' }}>Optimal Turn Suggestion</span>
+                      <p className="font-semibold text-[11px] leading-relaxed" style={{ color: '#6ee7b7' }}>
                         &ldquo;{insight.betterResponse}&rdquo;
                       </p>
                     </div>
-
                   </div>
-
                 </div>
-
               </div>
             )
           })
         ) : (
-          <div className="glass rounded-xl p-8 border border-white/5 text-center text-slate-500">
-            No coaching insights found matching the filter selection or search query.
+          <div
+            className="p-10 rounded-2xl text-center border"
+            style={{
+              background: 'rgba(13,21,53,0.7)',
+              borderColor: 'rgba(255,255,255,0.07)',
+            }}
+          >
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}
+            >
+              <Sparkles className="w-5 h-5" style={{ color: '#475569' }} />
+            </div>
+            <p className="font-bold text-white">No coaching insights found.</p>
+            <p className="text-[10px] mt-1" style={{ color: '#475569' }}>Try adjusting the filter selection or search query.</p>
           </div>
         )}
       </div>

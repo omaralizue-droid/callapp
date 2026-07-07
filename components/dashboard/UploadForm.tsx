@@ -200,50 +200,57 @@ export default function UploadForm() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 text-xs text-slate-700">
+    <div className="max-w-3xl mx-auto space-y-6 text-xs">
       <div>
-        <h2 className="text-xl font-bold text-slate-800 tracking-tight">Upload Call Recording</h2>
-        <p className="text-[10px] text-slate-500 mt-1">Audit customer conversations for QA compliance metrics</p>
+        <h2 className="text-xl font-bold text-white tracking-tight">Upload Call Recording</h2>
+        <p className="text-[10px] mt-1" style={{ color: '#475569' }}>Audit customer conversations for QA compliance metrics</p>
       </div>
 
       {status !== 'idle' ? (
         // Progress States Card
-        <div className="rounded-xl p-8 border border-slate-200 bg-white text-center space-y-6 shadow-sm">
+        <div
+          className="p-8 rounded-2xl text-center space-y-6"
+          style={{
+            background: 'rgba(13,21,53,0.7)',
+            border: '1px solid rgba(255,255,255,0.07)',
+            backdropFilter: 'blur(12px)',
+          }}
+        >
           <div className="flex flex-col items-center">
             {status === 'uploading' && (
               <>
-                <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
-                <h3 className="text-sm font-bold text-slate-800">Uploading audio recording...</h3>
-                <p className="text-[10px] text-slate-500 mt-1">Transferring raw audio bits to storage vault</p>
+                <Loader2 className="w-10 h-10 animate-spin text-indigo-400 mb-4" />
+                <h3 className="text-sm font-bold text-white">Uploading audio recording...</h3>
+                <p className="text-[10px] mt-1" style={{ color: '#475569' }}>Transferring raw audio bits to storage vault</p>
               </>
             )}
 
             {status === 'analyzing' && (
               <>
-                <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
-                <h3 className="text-sm font-bold text-slate-800">Analyzing call with Gemini...</h3>
-                <p className="text-[10px] text-slate-500 mt-1">Transcribing dialogue, scoring compliance rubrics, and generating coaching tags</p>
+                <Loader2 className="w-10 h-10 animate-spin text-indigo-400 mb-4 animate-pulse" />
+                <h3 className="text-sm font-bold text-white">Analyzing call with Gemini...</h3>
+                <p className="text-[10px] mt-1" style={{ color: '#475569' }}>Transcribing dialogue, scoring compliance rubrics, and generating coaching tags</p>
               </>
             )}
 
             {status === 'success' && (
               <>
-                <CheckCircle className="w-10 h-10 text-emerald-600 mb-4" />
-                <h3 className="text-sm font-bold text-slate-800">Analysis Complete!</h3>
-                <p className="text-[10px] text-slate-500 mt-1">Redirecting you to dashboard feed...</p>
+                <CheckCircle className="w-10 h-10 text-emerald-400 mb-4" />
+                <h3 className="text-sm font-bold text-white">Analysis Complete!</h3>
+                <p className="text-[10px] mt-1" style={{ color: '#475569' }}>Redirecting you to dashboard feed...</p>
               </>
             )}
           </div>
 
           <div className="w-full max-w-md mx-auto space-y-2">
-            <div className="flex justify-between text-[10px] text-slate-400">
+            <div className="flex justify-between text-[10px]" style={{ color: '#475569' }}>
               <span>{status === 'uploading' ? 'Upload Status' : 'Gemini scoring'}</span>
               <span>{status === 'uploading' ? `${progress}%` : 'Processing...'}</span>
             </div>
-            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
+            <div className="w-full rounded-full h-2 overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
               <div
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  status === 'uploading' ? 'bg-indigo-600' : 'bg-indigo-600 animate-pulse'
+                  status === 'uploading' ? 'bg-indigo-500' : 'bg-indigo-500 animate-pulse'
                 }`}
                 style={{ width: status === 'uploading' ? `${progress}%` : '100%' }}
               />
@@ -255,31 +262,46 @@ export default function UploadForm() {
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           {/* Left panel: Metadata Form */}
-          <div className="rounded-xl p-5 border border-slate-200 bg-white space-y-4 md:col-span-1 shadow-sm">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Call Metadata</h3>
+          <div
+            className="p-5 rounded-2xl space-y-4 md:col-span-1"
+            style={{
+              background: 'rgba(13,21,53,0.7)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              backdropFilter: 'blur(12px)',
+            }}
+          >
+            <h3 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#475569' }}>Call Metadata</h3>
             
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Call Title</label>
+                <label className="font-bold uppercase tracking-wide text-[9px]" style={{ color: '#334155' }}>Call Title</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Subscription billing dispute"
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/10 transition-all placeholder:text-slate-400"
+                  className="w-full rounded-xl px-3.5 py-2.5 text-white outline-none placeholder:text-slate-600 transition-all text-xs"
+                  style={{
+                    background: 'rgba(10,17,40,0.8)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                  }}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Assigned Agent</label>
+                <label className="font-bold uppercase tracking-wide text-[9px]" style={{ color: '#334155' }}>Assigned Agent</label>
                 <select
                   value={agentId}
                   onChange={(e) => setAgentId(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/10 transition-all"
+                  className="w-full rounded-xl px-3.5 py-2.5 text-white outline-none transition-all text-xs"
+                  style={{
+                    background: 'rgba(10,17,40,0.8)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                  }}
                 >
-                  <option value="">Select agent...</option>
+                  <option value="" style={{ background: '#0a1128', color: '#64748b' }}>Select agent...</option>
                   {AGENTS.map((a) => (
-                    <option key={a.id} value={a.id}>
+                    <option key={a.id} value={a.id} style={{ background: '#0a1128', color: 'white' }}>
                       {a.name}
                     </option>
                   ))}
@@ -287,24 +309,32 @@ export default function UploadForm() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Customer Name</label>
+                <label className="font-bold uppercase tracking-wide text-[9px]" style={{ color: '#334155' }}>Customer Name</label>
                 <input
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="Marcus Vance"
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/10 transition-all placeholder:text-slate-400"
+                  className="w-full rounded-xl px-3.5 py-2.5 text-white outline-none placeholder:text-slate-600 transition-all text-xs"
+                  style={{
+                    background: 'rgba(10,17,40,0.8)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                  }}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Customer Identifier / CRM ID</label>
+                <label className="font-bold uppercase tracking-wide text-[9px]" style={{ color: '#334155' }}>Customer Identifier / CRM ID</label>
                 <input
                   type="text"
                   value={customerId}
                   onChange={(e) => setCustomerId(e.target.value)}
                   placeholder="CUST-9821"
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/10 transition-all placeholder:text-slate-400"
+                  className="w-full rounded-xl px-3.5 py-2.5 text-white outline-none placeholder:text-slate-600 transition-all text-xs"
+                  style={{
+                    background: 'rgba(10,17,40,0.8)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                  }}
                 />
               </div>
             </div>
@@ -319,13 +349,17 @@ export default function UploadForm() {
               onDragOver={handleDrag}
               onDragLeave={handleDrag}
               onDrop={handleDrop}
-              className={`rounded-xl border border-dashed p-10 flex flex-col items-center justify-center min-h-[250px] relative transition-all duration-300 bg-white ${
+              className={`rounded-2xl border border-dashed p-10 flex flex-col items-center justify-center min-h-[250px] relative transition-all duration-300 ${
                 dragActive
-                  ? 'border-indigo-600 bg-indigo-50/50'
+                  ? 'border-indigo-500 bg-indigo-500/10'
                   : file
-                  ? 'border-emerald-500/40 bg-emerald-50/30'
-                  : 'border-slate-200 hover:border-indigo-600 hover:bg-slate-50/50'
+                  ? 'border-emerald-500/40 bg-emerald-500/5'
+                  : 'border-white/10 hover:border-indigo-500 hover:bg-white/[0.02]'
               }`}
+              style={{
+                backdropFilter: 'blur(12px)',
+                background: 'rgba(13,21,53,0.4)',
+              }}
             >
               <input
                 id="file-upload"
@@ -339,18 +373,24 @@ export default function UploadForm() {
               {file ? (
                 // Selected File Preview
                 <div className="flex flex-col items-center text-center space-y-4">
-                  <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shadow-sm">
-                    <FileAudio className="w-6 h-6" />
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                    style={{
+                      background: 'linear-gradient(135deg, #10b981, #059669)',
+                      boxShadow: '0 0 15px rgba(16,185,129,0.4)',
+                    }}
+                  >
+                    <FileAudio className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <span className="block font-bold text-slate-800 text-sm truncate max-w-md">{file.name}</span>
-                    <span className="block text-[10px] text-slate-400 font-mono mt-1">
+                    <span className="block font-bold text-white text-sm truncate max-w-md">{file.name}</span>
+                    <span className="block text-[10px] font-mono mt-1" style={{ color: '#475569' }}>
                       {(file.size / (1024 * 1024)).toFixed(2)} MB
                     </span>
                   </div>
                   <label
                     htmlFor="file-upload"
-                    className="text-[10px] text-indigo-600 hover:text-indigo-700 font-bold cursor-pointer underline"
+                    className="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold cursor-pointer underline"
                   >
                     Replace recording
                   </label>
@@ -358,13 +398,20 @@ export default function UploadForm() {
               ) : (
                 // Drag active or idle states
                 <label htmlFor="file-upload" className="flex flex-col items-center text-center cursor-pointer group">
-                  <div className="w-12 h-12 bg-slate-50 border border-slate-200 text-slate-400 group-hover:text-indigo-600 group-hover:border-indigo-600/30 rounded-lg flex items-center justify-center mb-4 transition-all duration-300">
-                    <UploadCloud className="w-6 h-6" />
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-105"
+                    style={{
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      color: '#475569',
+                    }}
+                  >
+                    <UploadCloud className="w-6 h-6 group-hover:text-indigo-400" />
                   </div>
-                  <span className="block font-bold text-slate-800 text-sm mb-1">
+                  <span className="block font-bold text-white text-sm mb-1 group-hover:text-indigo-300 transition-colors">
                     Drag and drop call recording
                   </span>
-                  <span className="block text-slate-400 text-[10px] leading-relaxed max-w-xs">
+                  <span className="block text-[10px] leading-relaxed max-w-xs" style={{ color: '#475569' }}>
                     Accepts voice files in WAV, MP3, M4A, or AAC formats up to 500MB
                   </span>
                 </label>
@@ -375,7 +422,7 @@ export default function UploadForm() {
             {file && <WaveformGenerator file={file} />}
 
             {errorMsg && (
-              <div className="bg-rose-50 text-rose-600 border border-rose-100 rounded-lg p-3 text-xs flex items-start gap-2.5">
+              <div className="bg-rose-500/15 text-rose-400 border border-rose-500/20 rounded-xl p-3 text-xs flex items-start gap-2.5">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{errorMsg}</span>
               </div>
@@ -386,14 +433,29 @@ export default function UploadForm() {
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="bg-transparent hover:bg-slate-50 border border-slate-200 font-bold px-5 py-2.5 rounded-lg text-slate-600 transition-all cursor-pointer"
+                className="font-bold px-5 py-2.5 rounded-xl transition-all cursor-pointer text-xs"
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  color: 'var(--text-primary)',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                }}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!file}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-2.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm shadow-indigo-600/10 cursor-pointer"
+                className="text-white font-bold px-8 py-2.5 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer text-xs"
+                style={{
+                  background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                  boxShadow: '0 4px 15px rgba(79,70,229,0.3)',
+                }}
               >
                 Process & Score Call
               </button>

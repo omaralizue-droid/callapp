@@ -172,7 +172,7 @@ export default function WaveformGenerator({ file }: WaveformGeneratorProps) {
       // Determine active vs inactive color matches
       const isActive = index <= activeIndex
       
-      ctx.fillStyle = isActive ? '#4f46e5' : '#cbd5e1' // Indigo-600 vs Slate-300
+      ctx.fillStyle = isActive ? '#818cf8' : '#334155' // Glowing light-blue vs Slate-700
       
       // Draw rounded bars
       ctx.beginPath()
@@ -202,33 +202,46 @@ export default function WaveformGenerator({ file }: WaveformGeneratorProps) {
   if (!file) return null
 
   return (
-    <div className="rounded-xl p-5 border border-slate-200 bg-white space-y-4 shadow-sm">
+    <div
+      className="p-5 rounded-2xl space-y-4"
+      style={{
+        background: 'rgba(13,21,53,0.7)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        backdropFilter: 'blur(12px)',
+      }}
+    >
       <div className="flex justify-between items-center">
-        <h4 className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-          <FileAudio className="w-4 h-4 text-indigo-600 animate-pulse" />
+        <h4 className="font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: '#475569' }}>
+          <FileAudio className="w-4 h-4 text-indigo-400 animate-pulse" />
           Local Waveform Preview
         </h4>
         {decoding ? (
-          <span className="text-[10px] text-indigo-600 font-mono flex items-center gap-1">
+          <span className="text-[10px] text-indigo-400 font-mono flex items-center gap-1">
             <Sparkles className="w-3.5 h-3.5 animate-spin" />
             Decoding waves...
           </span>
         ) : (
-          <span className="text-[10px] text-slate-500 font-mono">
+          <span className="text-[10px] font-mono" style={{ color: '#475569' }}>
             {formatTime(playbackTime)} / {formatTime(duration)}
           </span>
         )}
       </div>
 
       {error && (
-        <div className="bg-rose-500/15 text-rose-400 border border-rose-500/20 rounded-lg p-3 text-[10px] flex items-center gap-2">
+        <div className="bg-rose-500/15 text-rose-400 border border-rose-500/20 rounded-xl p-3 text-[10px] flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Waveform Render Canvas container */}
-      <div className="bg-slate-50 rounded-xl p-4 flex items-center justify-center border border-slate-200">
+      <div
+        className="rounded-xl p-4 flex items-center justify-center"
+        style={{
+          background: 'rgba(10,17,40,0.8)',
+          border: '1px solid rgba(255,255,255,0.06)',
+        }}
+      >
         <canvas
           ref={canvasRef}
           width={348} // 70 peaks * 5px gap spacing matches canvas size perfectly
@@ -245,7 +258,11 @@ export default function WaveformGenerator({ file }: WaveformGeneratorProps) {
           onClick={togglePlay}
           disabled={decoding}
           aria-label={isPlaying ? "Pause audio playback" : "Play audio recording"}
-          className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-all text-[11px] cursor-pointer"
+          className="text-white font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-all text-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          style={{
+            background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+            boxShadow: '0 4px 15px rgba(79,70,229,0.3)',
+          }}
         >
           {isPlaying ? (
             <>
@@ -260,7 +277,7 @@ export default function WaveformGenerator({ file }: WaveformGeneratorProps) {
           )}
         </button>
 
-        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+        <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: '#334155' }}>
           Double-click to loop
         </span>
       </div>
