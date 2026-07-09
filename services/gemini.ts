@@ -1,5 +1,7 @@
 import { GoogleGenAI, Type, Schema } from '@google/genai'
 import { buildSystemInstruction, USER_ANALYSIS_PROMPT } from '@/lib/prompts'
+import { DeepgramService } from './deepgram'
+
 
 /**
  * Type-safe output interface representing the expected JSON response from Gemini
@@ -374,10 +376,28 @@ export class GeminiService {
     rubric: { compliance: string[]; softSkills: string[] }
   ): Promise<GeminiAnalysisOutput> {
     const apiCall = async () => {
+      // 1. Attempt transcription via Deepgram Nova-3 if API Key is configured
+      const deepgramTranscript = await (async () => {
+        try {
+          if (process.env.DEEPGRAM_API_KEY) {
+            return await DeepgramService.transcribeAudio(audioBuffer, mimeType)
+          }
+        } catch (e) {
+          console.error('[Gemini Service] Deepgram transcription failed. Falling back to native Gemini processing:', e)
+        }
+        return null
+      })()
+
       const ai = this.getClient()
       const base64Audio = audioBuffer.toString('base64')
       
       const systemInstruction = buildSystemInstruction(rubric)
+
+      // Enhance prompt with Deepgram high-accuracy transcript if available
+      let userPrompt = USER_ANALYSIS_PROMPT
+      if (deepgramTranscript && deepgramTranscript.length > 0) {
+        userPrompt += `\n\nUse the following high-fidelity pre-recorded diarized transcription from our Speech-to-Text provider (Deepgram Nova-3) to populate the final timestamped dialogue loops and map numeric speaker IDs to 'Agent' or 'Customer' based on contextual cues:\n${JSON.stringify(deepgramTranscript)}`
+      }
 
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -392,7 +412,7 @@ export class GeminiService {
                 },
               },
               {
-                text: USER_ANALYSIS_PROMPT,
+                text: userPrompt,
               },
             ],
           },
