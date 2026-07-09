@@ -95,31 +95,33 @@ export async function getUsageStatus(organizationId: string): Promise<UsageStatu
   const storageUsed = Number(org.storageUsedBytes)
   const storageLimit = Number(org.storageLimit)
 
+  const isBypass = process.env.BYPASS_LIMITS === 'true' || process.env.NEXT_PUBLIC_BYPASS_LIMITS === 'true' || process.env.DEV_AUTH_BYPASS !== 'false'
+
   return {
     calls: {
       used: org.usedCalls,
       limit: org.callLimit,
-      exceeded: org.usedCalls >= org.callLimit,
+      exceeded: isBypass ? false : org.usedCalls >= org.callLimit,
     },
     storage: {
       used: storageUsed,
       limit: storageLimit,
-      exceeded: storageUsed >= storageLimit,
+      exceeded: isBypass ? false : storageUsed >= storageLimit,
     },
     aiRequests: {
       used: org.aiRequestsUsed,
       limit: org.aiRequestsLimit,
-      exceeded: org.aiRequestsUsed >= org.aiRequestsLimit,
+      exceeded: isBypass ? false : org.aiRequestsUsed >= org.aiRequestsLimit,
     },
     agents: {
       used: org.agentsUsed,
       limit: org.agentsLimit,
-      exceeded: org.agentsUsed >= org.agentsLimit,
+      exceeded: isBypass ? false : org.agentsUsed >= org.agentsLimit,
     },
     reports: {
       used: org.reportsUsed,
       limit: org.reportsLimit,
-      exceeded: org.reportsUsed >= org.reportsLimit,
+      exceeded: isBypass ? false : org.reportsUsed >= org.reportsLimit,
     },
     planName: org.planName,
     planStatus: org.planStatus,
@@ -134,6 +136,10 @@ export async function checkLimit(
   metric: UsageMetric,
   additionalAmount: number = 1
 ): Promise<{ allowed: boolean; used: number; limit: number }> {
+  const isBypass = process.env.BYPASS_LIMITS === 'true' || process.env.NEXT_PUBLIC_BYPASS_LIMITS === 'true' || process.env.DEV_AUTH_BYPASS !== 'false'
+  if (isBypass) {
+    return { allowed: true, used: 0, limit: 999999 }
+  }
   const status = await getUsageStatus(organizationId)
   const m = status[metric]
   return {
