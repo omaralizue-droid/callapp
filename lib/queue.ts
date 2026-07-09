@@ -138,7 +138,7 @@ async function runQueueProcessor() {
   }
 }
 
-async function processJob(callId: string) {
+export async function processJob(callId: string) {
   // 1. Fetch the Call
   const call = await prisma.call.findUnique({
     where: { id: callId },

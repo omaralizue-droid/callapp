@@ -7,6 +7,8 @@ import { checkLimit } from '@/services/usage'
 import { enqueueJob } from '@/lib/queue'
 import { Prisma } from '@prisma/client'
 import prisma from '@/lib/db'
+import { inngest } from '@/lib/inngest'
+
 
 interface CreateCallInput {
   title: string
@@ -282,6 +284,17 @@ export async function createCallAction(input: CreateCallInput) {
 
     // Enqueue the background processing task (starts processing asynchronously)
     await enqueueJob(call.id)
+
+    // Dispatch Inngest event for Vercel serverless execution
+    try {
+      await inngest.send({
+        name: 'call/uploaded',
+        data: { callId: call.id },
+      })
+      console.info(`[Inngest] Dispatched call/uploaded event for call: ${call.id}`)
+    } catch (inngestErr) {
+      console.warn('[Inngest] Event dispatch warning (Inngest dev server may be offline):', inngestErr)
+    }
 
     revalidatePath('/dashboard/overview')
     revalidatePath('/dashboard/calls')
