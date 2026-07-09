@@ -1,4 +1,5 @@
 import { GoogleGenAI, Type, Schema } from '@google/genai'
+import { buildSystemInstruction, USER_ANALYSIS_PROMPT } from '@/lib/prompts'
 
 /**
  * Type-safe output interface representing the expected JSON response from Gemini
@@ -376,17 +377,7 @@ export class GeminiService {
       const ai = this.getClient()
       const base64Audio = audioBuffer.toString('base64')
       
-      const systemInstruction = `
-        You are a Staff QA Auditor and Speech Analytics bot at a BPO Call Center.
-        Your task is to analyze the audio call recording provided and audit agent compliance.
-        
-        Auditing Rubric Guidelines:
-        - Compliance checkpoints to score: ${JSON.stringify(rubric.compliance)}
-        - Soft skills to grade (1-5 star scale): ${JSON.stringify(rubric.softSkills)}
-        
-        You must respond in strict structured JSON format matching the schema rules.
-        Be objective, precise, and extract correct timestamps for the transcript segments.
-      `
+      const systemInstruction = buildSystemInstruction(rubric)
 
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -401,7 +392,7 @@ export class GeminiService {
                 },
               },
               {
-                text: 'Analyze this call recording, generate the compliance checklist scorecard, rate soft skills, compile CRM notes and translocate timestamped transcript loops.',
+                text: USER_ANALYSIS_PROMPT,
               },
             ],
           },

@@ -1,7 +1,24 @@
-'use client'
-
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import GoogleNav from '@/components/landing/GoogleNav'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | CallPilot AI',
+  description: 'Read the CallPilot AI Privacy Policy to learn how we encrypt, store, scrub, and secure your call audio recordings and customer conversation transcripts.',
+  openGraph: {
+    title: 'Privacy Policy | CallPilot AI',
+    description: 'Read the CallPilot AI Privacy Policy to learn how we encrypt, store, scrub, and secure your call audio recordings and customer conversation transcripts.',
+    url: 'https://callpilot.ai/privacy',
+    type: 'website',
+  }
+}
+
+const privacyStructuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  'name': 'CallPilot AI Privacy Policy',
+  'url': 'https://callpilot.ai/privacy',
+}
 
 const SECTIONS = [
   {
@@ -36,40 +53,50 @@ const SECTIONS = [
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans transition-colors duration-200">
+    <div
+      className="min-h-screen flex flex-col font-sans overflow-x-hidden"
+      style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+    >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(privacyStructuredData) }}
+      />
       <GoogleNav />
 
-      <section className="py-16 px-6 bg-slate-50/50 border-b border-slate-100">
-        <div className="max-w-3xl mx-auto">
-          <p className="text-sm font-semibold text-indigo-600 mb-3 uppercase tracking-wide">Legal</p>
-          <h1 className="text-4xl font-extrabold mb-3 text-slate-900">Privacy Policy</h1>
-          <p className="text-xs text-slate-500">Last updated: January 1, 2025</p>
+      {/* Hero */}
+      <section className="relative py-20 px-6 text-center border-b border-white/5 overflow-hidden aurora-bg">
+        <div className="relative z-10 max-w-3xl mx-auto">
+          <p className="text-xs font-bold uppercase tracking-widest mb-3 gradient-text">Legal</p>
+          <h1 className="text-4xl font-black text-white tracking-tight mb-3">Privacy Policy</h1>
+          <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Last updated: January 1, 2025</p>
         </div>
       </section>
 
-      <main className="py-16 px-6 flex-grow bg-white">
-        <div className="max-w-3xl mx-auto space-y-6">
+      {/* Main Content */}
+      <main className="py-16 px-6 flex-grow" style={{ background: 'var(--bg-secondary)' }}>
+        <div className="max-w-3xl mx-auto space-y-6 relative z-10">
+          
           {/* Introduction card */}
-          <div className="p-7 rounded-xl border border-slate-200 bg-white">
-            <p className="text-sm leading-relaxed text-slate-600">
+          <div className="glass-card p-6 border border-white/5">
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
               CallPilot AI Inc. ("CallPilot," "we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and share information about you when you use our AI call analytics platform. By using CallPilot, you agree to the practices described in this policy.
             </p>
           </div>
 
-          {/* Policy cards */}
+          {/* Policy sections */}
           {SECTIONS.map((section, idx) => (
-            <div key={idx} className="p-7 rounded-xl border border-slate-200 bg-white">
-              <h2 className="text-base font-bold mb-3 text-slate-900">{section.title}</h2>
-              <p className="text-sm leading-relaxed text-slate-600">{section.content}</p>
+            <div key={idx} className="glass-card p-6 border border-white/5">
+              <h2 className="text-sm font-bold mb-3 text-white">{section.title}</h2>
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{section.content}</p>
             </div>
           ))}
 
           {/* Contact */}
-          <div className="p-7 rounded-xl border border-slate-200 bg-white">
-            <h2 className="text-base font-bold mb-3 text-slate-900">8. Contact Us</h2>
-            <p className="text-sm leading-relaxed text-slate-600">
+          <div className="glass-card p-6 border border-white/5">
+            <h2 className="text-sm font-bold mb-3 text-white">8. Contact Us</h2>
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
               If you have questions about this Privacy Policy, contact us at:{' '}
-              <a href="mailto:privacy@callpilot.ai" className="font-semibold text-indigo-600 hover:underline">
+              <a href="mailto:privacy@callpilot.ai" className="font-bold text-indigo-400 hover:text-indigo-300 transition-colors">
                 privacy@callpilot.ai
               </a>
             </p>
@@ -77,11 +104,12 @@ export default function PrivacyPage() {
         </div>
       </main>
 
-      <footer className="border-t border-slate-100 py-8 px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500 bg-slate-50/50">
+      {/* Footer */}
+      <footer className="border-t border-white/5 py-8 px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs bg-slate-950/80" style={{ color: 'var(--text-secondary)' }}>
         <p>© {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
         <div className="flex gap-6">
-          <Link href="/privacy" className="text-indigo-600 font-medium">Privacy</Link>
-          <Link href="/terms" className="hover:text-indigo-600 transition-colors">Terms</Link>
+          <Link href="/privacy" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors">Privacy Policy</Link>
+          <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
         </div>
       </footer>
     </div>

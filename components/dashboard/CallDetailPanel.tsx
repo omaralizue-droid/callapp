@@ -14,8 +14,10 @@ import {
   Check,
   Download,
   Tag,
+  Loader2,
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { CallRecord, TranscriptSegment } from '@/types/calls'
 import {
   ResponsiveContainer,
@@ -95,6 +97,7 @@ const CustomDot = (props: CustomDotProps) => {
 
 
 export default function CallDetailPanel({ call }: CallDetailPanelProps) {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'overview' | 'transcript' | 'coaching' | 'crm'>('overview')
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -102,6 +105,15 @@ export default function CallDetailPanel({ call }: CallDetailPanelProps) {
   const [isExporting, setIsExporting] = useState(false)
   const [timelineFilter, setTimelineFilter] = useState<'customer' | 'both'>('customer')
   const [isCopied, setIsCopied] = useState(false)
+
+  useEffect(() => {
+    if (call.status === 'PENDING' || call.status === 'PROCESSING') {
+      const interval = setInterval(() => {
+        router.refresh()
+      }, 4000)
+      return () => clearInterval(interval)
+    }
+  }, [call.status, router])
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -203,6 +215,42 @@ export default function CallDetailPanel({ call }: CallDetailPanelProps) {
     const percentage = x / rect.width
     const targetTime = percentage * (call.duration || 182)
     handleSeek(targetTime)
+  }
+
+  if (call.status === 'PENDING' || call.status === 'PROCESSING') {
+    return (
+      <div className="max-w-3xl mx-auto p-8 text-center space-y-6">
+        <div
+          className="p-12 rounded-2xl space-y-6 animate-fade-in"
+          style={{
+            background: 'rgba(13,21,53,0.7)',
+            border: '1px solid rgba(255,255,255,0.07)',
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          <div className="flex flex-col items-center">
+            <Loader2 className="w-12 h-12 animate-spin text-indigo-400 mb-4 animate-pulse" />
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">AI Audit In Progress</h3>
+            <p className="text-[10px] text-slate-400 mt-2 max-w-sm leading-relaxed">
+              Gemini is transcribing this call recording, scoring compliance rubrics, and generating soft-skills coaching insights in the background.
+            </p>
+          </div>
+          
+          <div className="w-full max-w-xs mx-auto bg-slate-950/60 rounded-full h-1.5 overflow-hidden border border-white/5">
+            <div className="bg-indigo-500 h-full rounded-full animate-pulse" style={{ width: '60%' }} />
+          </div>
+          
+          <div className="pt-2">
+            <Link
+              href="/dashboard/calls"
+              className="inline-block px-5 py-2 rounded-xl text-[10px] font-bold bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 transition-all cursor-pointer"
+            >
+              Back to Call History
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   // Compliance items from QA checklist

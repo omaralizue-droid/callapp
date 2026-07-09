@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { UploadCloud, FileAudio, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { UploadCloud, FileAudio, CheckCircle, AlertCircle, Loader2, Lock, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { createCallAction } from '@/actions/calls'
 import WaveformGenerator from '@/components/dashboard/WaveformGenerator'
+import { UsageStatus } from '@/services/usage'
+import Link from 'next/link'
 
 const AGENTS = [
   { id: 'agent-1', name: 'Alex Rodriguez' },
@@ -13,11 +15,22 @@ const AGENTS = [
   { id: 'agent-3', name: 'David Kim' },
 ]
 
-export default function UploadForm() {
+export default function UploadForm({ usage }: { usage?: UsageStatus }) {
   const router = useRouter()
   const [dragActive, setDragActive] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [duration, setDuration] = useState(0)
+
+  const exceededMetric = usage
+    ? [
+        usage.calls.exceeded ? 'Calls Volume' : null,
+        usage.storage.exceeded ? 'Cloud Storage' : null,
+        usage.aiRequests.exceeded ? 'Gemini AI Requests' : null,
+        usage.reports.exceeded ? 'QA Reports' : null,
+      ].filter(Boolean) as string[]
+    : []
+
+  const isLimitExceeded = exceededMetric.length > 0
 
   // Metadata Form States
   const [title, setTitle] = useState('')
@@ -206,6 +219,30 @@ export default function UploadForm() {
         <p className="text-[10px] mt-1" style={{ color: '#475569' }}>Audit customer conversations for QA compliance metrics</p>
       </div>
 
+      {isLimitExceeded && (
+        <div className="bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-2xl p-5 space-y-3">
+          <div className="flex gap-2.5 items-start">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-500" />
+            <div>
+              <span className="font-bold text-white text-sm block">Plan Quota Limit Exceeded</span>
+              <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                Your organization has exceeded the plan allocation for: <span className="text-rose-400 font-bold">{exceededMetric.join(', ')}</span>. 
+                Uploads are currently locked. Upgrade your subscription plan or contact your manager to expand your monthly limits.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <Link
+              href="/dashboard/settings?tab=billing"
+              className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-[10px] flex items-center gap-1.5 transition-all"
+            >
+              Upgrade Subscription Plan
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
+      )}
+
       {status !== 'idle' ? (
         // Progress States Card
         <div
@@ -344,79 +381,104 @@ export default function UploadForm() {
           <div className="md:col-span-2 space-y-4">
             
             {/* Drag Zone container */}
-            <div
-              onDragEnter={handleDrag}
-              onDragOver={handleDrag}
-              onDragLeave={handleDrag}
-              onDrop={handleDrop}
-              className={`rounded-2xl border border-dashed p-10 flex flex-col items-center justify-center min-h-[250px] relative transition-all duration-300 ${
-                dragActive
-                  ? 'border-indigo-500 bg-indigo-500/10'
-                  : file
-                  ? 'border-emerald-500/40 bg-emerald-500/5'
-                  : 'border-white/10 hover:border-indigo-500 hover:bg-white/[0.02]'
-              }`}
-              style={{
-                backdropFilter: 'blur(12px)',
-                background: 'rgba(13,21,53,0.4)',
-              }}
-            >
-              <input
-                id="file-upload"
-                type="file"
-                multiple={false}
-                accept="audio/wav,audio/mp3,audio/mpeg,audio/m4a,audio/x-m4a,audio/aac,audio/x-aac"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-
-              {file ? (
-                // Selected File Preview
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                    style={{
-                      background: 'linear-gradient(135deg, #10b981, #059669)',
-                      boxShadow: '0 0 15px rgba(16,185,129,0.4)',
-                    }}
-                  >
-                    <FileAudio className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <span className="block font-bold text-white text-sm truncate max-w-md">{file.name}</span>
-                    <span className="block text-[10px] font-mono mt-1" style={{ color: '#475569' }}>
-                      {(file.size / (1024 * 1024)).toFixed(2)} MB
-                    </span>
-                  </div>
-                  <label
-                    htmlFor="file-upload"
-                    className="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold cursor-pointer underline"
-                  >
-                    Replace recording
-                  </label>
+            {isLimitExceeded ? (
+              <div
+                className="rounded-2xl border border-dashed border-rose-500/20 bg-rose-950/5 p-10 flex flex-col items-center justify-center min-h-[250px] text-center"
+                style={{
+                  backdropFilter: 'blur(12px)',
+                }}
+              >
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 text-rose-400"
+                  style={{
+                    background: 'rgba(244,63,94,0.08)',
+                    border: '1px solid rgba(244,63,94,0.15)',
+                  }}
+                >
+                  <Lock className="w-6 h-6 animate-pulse" />
                 </div>
-              ) : (
-                // Drag active or idle states
-                <label htmlFor="file-upload" className="flex flex-col items-center text-center cursor-pointer group">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-105"
-                    style={{
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      color: '#475569',
-                    }}
-                  >
-                    <UploadCloud className="w-6 h-6 group-hover:text-indigo-400" />
+                <span className="block font-bold text-white text-sm mb-1">
+                  Audio Uploads Locked
+                </span>
+                <span className="block text-[10px] leading-relaxed max-w-xs text-slate-500">
+                  Please upgrade your subscription status under billing settings to resume QA audits and voice processing.
+                </span>
+              </div>
+            ) : (
+              <div
+                onDragEnter={handleDrag}
+                onDragOver={handleDrag}
+                onDragLeave={handleDrag}
+                onDrop={handleDrop}
+                className={`rounded-2xl border border-dashed p-10 flex flex-col items-center justify-center min-h-[250px] relative transition-all duration-300 ${
+                  dragActive
+                    ? 'border-indigo-500 bg-indigo-500/10'
+                    : file
+                    ? 'border-emerald-500/40 bg-emerald-500/5'
+                    : 'border-white/10 hover:border-indigo-500 hover:bg-white/[0.02]'
+                }`}
+                style={{
+                  backdropFilter: 'blur(12px)',
+                  background: 'rgba(13,21,53,0.4)',
+                }}
+              >
+                <input
+                  id="file-upload"
+                  type="file"
+                  multiple={false}
+                  accept="audio/wav,audio/mp3,audio/mpeg,audio/m4a,audio/x-m4a,audio/aac,audio/x-aac"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+
+                {file ? (
+                  // Selected File Preview
+                  <div className="flex flex-col items-center text-center space-y-4">
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                      style={{
+                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                        boxShadow: '0 0 15px rgba(16,185,129,0.4)',
+                      }}
+                    >
+                      <FileAudio className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <span className="block font-bold text-white text-sm truncate max-w-md">{file.name}</span>
+                      <span className="block text-[10px] font-mono mt-1" style={{ color: '#475569' }}>
+                        {(file.size / (1024 * 1024)).toFixed(2)} MB
+                      </span>
+                    </div>
+                    <label
+                      htmlFor="file-upload"
+                      className="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold cursor-pointer underline"
+                    >
+                      Replace recording
+                    </label>
                   </div>
-                  <span className="block font-bold text-white text-sm mb-1 group-hover:text-indigo-300 transition-colors">
-                    Drag and drop call recording
-                  </span>
-                  <span className="block text-[10px] leading-relaxed max-w-xs" style={{ color: '#475569' }}>
-                    Accepts voice files in WAV, MP3, M4A, or AAC formats up to 500MB
-                  </span>
-                </label>
-              )}
-            </div>
+                ) : (
+                  // Drag active or idle states
+                  <label htmlFor="file-upload" className="flex flex-col items-center text-center cursor-pointer group">
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-105"
+                      style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: '#475569',
+                      }}
+                    >
+                      <UploadCloud className="w-6 h-6 group-hover:text-indigo-400" />
+                    </div>
+                    <span className="block font-bold text-white text-sm mb-1 group-hover:text-indigo-300 transition-colors">
+                      Drag and drop call recording
+                    </span>
+                    <span className="block text-[10px] leading-relaxed max-w-xs" style={{ color: '#475569' }}>
+                      Accepts voice files in WAV, MP3, M4A, or AAC formats up to 500MB
+                    </span>
+                  </label>
+                )}
+              </div>
+            )}
 
             {/* Canvas Waveform local preview */}
             {file && <WaveformGenerator file={file} />}
@@ -450,7 +512,7 @@ export default function UploadForm() {
               </button>
               <button
                 type="submit"
-                disabled={!file}
+                disabled={!file || isLimitExceeded}
                 className="text-white font-bold px-8 py-2.5 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer text-xs"
                 style={{
                   background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Save,
   Shield,
@@ -19,8 +19,54 @@ import {
   Settings2,
   ArrowRight,
   ExternalLink,
+  Sparkles,
+  Copy,
+  RefreshCw,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Zap,
+  AlertTriangle,
+  Clock,
+  Palette,
 } from 'lucide-react'
 import { createCheckoutSessionAction, createPortalSessionAction } from '@/actions/stripe'
+import {
+  createInvitationAction,
+  revokeInvitationAction,
+  resendInvitationAction,
+} from '@/actions/invitations'
+import {
+  generateApiKeyAction,
+  revokeApiKeyAction,
+  regenerateApiKeyAction,
+  getApiKeyAuditLogsAction,
+  API_SCOPES,
+} from '@/actions/apikeys'
+import BrandingPanel from './BrandingPanel'
+import type { OrgBranding } from '@/lib/branding'
+
+type ApiKeyRow = {
+  id: string
+  name: string
+  keyPrefix: string
+  scopes: string[]
+  rateLimitRpm: number
+  isRevoked: boolean
+  lastUsedAt: string | null
+  expiresAt: string | null
+  createdAt: string
+  auditLogCount: number
+}
+
+type AuditLogRow = {
+  id: string
+  action: string
+  performedById: string | null
+  ipAddress: string | null
+  details: string | null
+  createdAt: string
+}
 
 interface SettingsFormProps {
   initialBilling?: {
@@ -30,6 +76,14 @@ interface SettingsFormProps {
     stripeCancelAtPeriodEnd: boolean
     callLimit: number
     usedCalls: number
+    storageLimit: number
+    storageUsedBytes: number
+    aiRequestsLimit: number
+    aiRequestsUsed: number
+    agentsLimit: number
+    agentsUsed: number
+    reportsLimit: number
+    reportsUsed: number
     paymentHistories: Array<{
       invoice: string
       date: string
@@ -37,13 +91,66 @@ interface SettingsFormProps {
       status: string
     }>
   }
+  currentUserRole: string
+  initialUsers: Array<{
+    id: string
+    email: string
+    firstName: string | null
+    lastName: string | null
+    role: string
+    team: string
+  }>
+  initialInvitations: Array<{
+    id: string
+    email: string
+    role: string
+    isAccepted: boolean
+    isRevoked: boolean
+    expiresAt: string
+    createdAt: string
+  }>
+  initialTeams: Array<{
+    id: string
+    name: string
+    description: string | null
+    membersCount: number
+  }>
+  initialApiKeys?: ApiKeyRow[]
+  initialBranding?: OrgBranding
 }
 
-export default function SettingsForm({ initialBilling }: SettingsFormProps) {
+function formatBytes(bytes: number) {
+  if (bytes === 0) return '0 Bytes'
+  if (bytes >= 999999999999) return 'Unlimited'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+export default function SettingsForm({
+  initialBilling,
+  currentUserRole,
+  initialUsers,
+  initialInvitations,
+  initialTeams,
+  initialApiKeys = [],
+  initialBranding,
+}: SettingsFormProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [activeSubTab, setActiveSubTab] = useState<
-    'profile' | 'rubric' | 'crm' | 'users' | 'permissions' | 'diagnostics' | 'analytics' | 'calls' | 'billing'
+    'profile' | 'rubric' | 'crm' | 'users' | 'permissions' | 'diagnostics' | 'analytics' | 'calls' | 'billing' | 'developer' | 'branding'
   >('profile')
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const tab = params.get('tab')
+      if (tab === 'billing') {
+        setActiveSubTab('billing')
+      }
+    }
+  }, [])
 
   // Existing states
   const [firstName, setFirstName] = useState('Alex')
@@ -64,24 +171,14 @@ export default function SettingsForm({ initialBilling }: SettingsFormProps) {
 
   // Enterprise Admin panel states
   // User states
-  const [users, setUsers] = useState([
-    { id: 'user-1', email: 'alex.r@company.com', firstName: 'Alex', lastName: 'Rodriguez', role: 'ADMIN', team: 'Retention Team' },
-    { id: 'user-2', email: 'lisa.m@company.com', firstName: 'Lisa', lastName: 'Miller', role: 'AGENT', team: 'Retention Team' },
-    { id: 'user-3', email: 'john.d@company.com', firstName: 'John', lastName: 'Doe', role: 'MANAGER', team: 'General Support' },
-    { id: 'user-4', email: 'jane.s@company.com', firstName: 'Jane', lastName: 'Smith', role: 'QA', team: 'Quality Control' },
-  ])
-  const [newUserEmail, setNewUserEmail] = useState('')
-  const [newUserFirstName, setNewUserFirstName] = useState('')
-  const [newUserLastName, setNewUserLastName] = useState('')
-  const [newUserRole, setNewUserRole] = useState('AGENT')
-  const [newUserTeam, setNewUserTeam] = useState('Retention Team')
+  const [users, setUsers] = useState(initialUsers)
+  const [invitations, setInvitations] = useState(initialInvitations)
+  const [teams, setTeams] = useState(initialTeams)
 
-  // Team states
-  const [teams, setTeams] = useState([
-    { id: 'team-1', name: 'Retention Team', description: 'Handles subscription cancellations and disputes.', membersCount: 2 },
-    { id: 'team-2', name: 'General Support', description: 'Assists with portal errors and invoicing issues.', membersCount: 1 },
-    { id: 'team-3', name: 'Quality Control', description: 'Reviews and audits recorded conversations.', membersCount: 1 },
-  ])
+  // Invitation Form States
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState('AGENT')
+  const [isInviting, setIsInviting] = useState(false)
   const [newTeamName, setNewTeamName] = useState('')
   const [newTeamDesc, setNewTeamDesc] = useState('')
 
@@ -91,6 +188,23 @@ export default function SettingsForm({ initialBilling }: SettingsFormProps) {
   const [webhookUrl, setWebhookUrl] = useState('https://hooks.salesforce.com/services/xxxx/xxxx')
   const apiKey = 'cp_live_pk_xxxxxxxxxxxxxx'
   const [showApiKey, setShowApiKey] = useState(false)
+
+  // ─── API Key Management State ───────────────────────────────────────────────
+  const [apiKeys, setApiKeys] = useState<ApiKeyRow[]>(initialApiKeys)
+  const [newKeyName, setNewKeyName] = useState('')
+  const [newKeyScopes, setNewKeyScopes] = useState<string[]>([])
+  const [newKeyRpm, setNewKeyRpm] = useState(60)
+  const [newKeyExpiry, setNewKeyExpiry] = useState('')
+  const [isGeneratingKey, setIsGeneratingKey] = useState(false)
+
+  // One-time reveal modal
+  const [revealedKey, setRevealedKey] = useState<{ raw: string; name: string } | null>(null)
+  const [keyCopied, setKeyCopied] = useState(false)
+
+  // Per-key audit log drawer (keyed by API key id)
+  const [auditLogs, setAuditLogs] = useState<Record<string, AuditLogRow[]>>({})
+  const [expandedKeyId, setExpandedKeyId] = useState<string | null>(null)
+  const [loadingAudit, setLoadingAudit] = useState<string | null>(null)
 
   // Call database states
   const [adminCalls, setAdminCalls] = useState([
@@ -107,6 +221,14 @@ export default function SettingsForm({ initialBilling }: SettingsFormProps) {
     stripeCancelAtPeriodEnd: false,
     callLimit: 100,
     usedCalls: 0,
+    storageLimit: 5368709120,
+    storageUsedBytes: 0,
+    aiRequestsLimit: 100,
+    aiRequestsUsed: 0,
+    agentsLimit: 5,
+    agentsUsed: 0,
+    reportsLimit: 50,
+    reportsUsed: 0,
     paymentHistories: [
       { invoice: 'INV-mock-01', date: 'Jun 1, 2026', amount: '$49.00', status: 'PAID' }
     ]
@@ -159,35 +281,98 @@ export default function SettingsForm({ initialBilling }: SettingsFormProps) {
     setComplianceItems(complianceItems.filter((_, i) => i !== index))
   }
 
-  const handleAddUser = (e: React.FormEvent) => {
+  const isOwnerOrAdmin = currentUserRole === 'ADMIN' || currentUserRole === 'OWNER'
+
+  const handleInviteUser = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (newUserEmail && newUserFirstName && newUserLastName) {
-      setUsers([
-        ...users,
-        {
-          id: `user-${Date.now()}`,
-          email: newUserEmail,
-          firstName: newUserFirstName,
-          lastName: newUserLastName,
-          role: newUserRole,
-          team: newUserTeam,
-        },
-      ])
-      setNewUserEmail('')
-      setNewUserFirstName('')
-      setNewUserLastName('')
-      alert('User invited successfully!')
+    if (!isOwnerOrAdmin) {
+      alert('Only owners and administrators can manage invitations.')
+      return
     }
+    if (!inviteEmail.trim()) {
+      alert('Email address is required.')
+      return
+    }
+
+    setIsInviting(true)
+    try {
+      const res = await createInvitationAction(inviteEmail, inviteRole)
+      if (res.error) {
+        alert(res.error)
+      } else {
+        alert('Invitation sent successfully!')
+        const newInvite = {
+          id: res.invitation!.id,
+          email: res.invitation!.email,
+          role: res.invitation!.role,
+          isAccepted: res.invitation!.isAccepted,
+          isRevoked: res.invitation!.isRevoked,
+          expiresAt: res.invitation!.expiresAt.toISOString(),
+          createdAt: res.invitation!.createdAt.toISOString(),
+        }
+        setInvitations([newInvite, ...invitations])
+        setInviteEmail('')
+      }
+    } catch (err) {
+      alert('Failed to send invitation: ' + String(err))
+    } finally {
+      setIsInviting(false)
+    }
+  }
+
+  const handleResendInvite = async (id: string) => {
+    if (!isOwnerOrAdmin) return
+    try {
+      const res = await resendInvitationAction(id)
+      if (res.error) {
+        alert(res.error)
+      } else {
+        alert('Invitation resent successfully!')
+        setInvitations(invitations.map(i => {
+          if (i.id === id) {
+            const nextExp = new Date()
+            nextExp.setDate(nextExp.getDate() + 7)
+            return { ...i, expiresAt: nextExp.toISOString() }
+          }
+          return i
+        }))
+      }
+    } catch (err) {
+      alert('Failed to resend: ' + String(err))
+    }
+  }
+
+  const handleRevokeInvite = async (id: string) => {
+    if (!isOwnerOrAdmin) return
+    if (!confirm('Are you sure you want to revoke this invitation?')) return
+
+    try {
+      const res = await revokeInvitationAction(id)
+      if (res.error) {
+        alert(res.error)
+      } else {
+        alert('Invitation revoked successfully!')
+        setInvitations(invitations.map(i => i.id === id ? { ...i, isRevoked: true } : i))
+      }
+    } catch (err) {
+      alert('Failed to revoke: ' + String(err))
+    }
+  }
+
+  const getInviteStatus = (invite: typeof invitations[0]) => {
+    if (invite.isAccepted) return { label: 'Accepted', color: '#6ee7b7', bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.3)' }
+    if (invite.isRevoked) return { label: 'Revoked', color: '#fca5a5', bg: 'rgba(244,63,94,0.15)', border: 'rgba(244,63,94,0.3)' }
+    const isExpired = new Date(invite.expiresAt) < new Date()
+    if (isExpired) return { label: 'Expired', color: '#94a3b8', bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)' }
+    return { label: 'Pending', color: '#fcd34d', bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)' }
   }
 
   const handleDeleteUser = (id: string) => {
-    if (confirm('Are you sure you want to delete this user profile?')) {
-      setUsers(users.filter(u => u.id !== id))
-    }
+    alert('User deletions must be processed via Supabase Auth admin panels.')
   }
 
   const handleUpdateUserRole = (id: string, newRole: string) => {
-    setUsers(users.map(u => (u.id === id ? { ...u, role: newRole } : u)))
+    alert('To change a member\'s role, please revoke and re-invite them with the new role.')
   }
 
   const handleAddTeam = (e: React.FormEvent) => {
@@ -218,6 +403,120 @@ export default function SettingsForm({ initialBilling }: SettingsFormProps) {
     if (confirm('Are you sure you want to permanently delete this call record and all its associated QA analysis files?')) {
       setAdminCalls(adminCalls.filter(c => c.id !== id))
       alert('Call record deleted successfully.')
+    }
+  }
+
+  // ─── API Key Handlers ───────────────────────────────────────────────────────
+  const handleScopeToggle = (scope: string) => {
+    setNewKeyScopes(prev =>
+      prev.includes(scope) ? prev.filter(s => s !== scope) : [...prev, scope]
+    )
+  }
+
+  const handleGenerateKey = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newKeyName.trim()) { alert('Key name is required.'); return }
+    if (newKeyScopes.length === 0) { alert('Select at least one scope.'); return }
+
+    setIsGeneratingKey(true)
+    try {
+      const res = await generateApiKeyAction({
+        name: newKeyName,
+        scopes: newKeyScopes,
+        rateLimitRpm: newKeyRpm,
+        expiresAt: newKeyExpiry || null,
+      })
+      if (res.error) {
+        alert(res.error)
+      } else if (res.apiKey && res.rawKey) {
+        setApiKeys(prev => [{ ...res.apiKey!, auditLogCount: 0 }, ...prev])
+        setNewKeyName('')
+        setNewKeyScopes([])
+        setNewKeyRpm(60)
+        setNewKeyExpiry('')
+        setRevealedKey({ raw: res.rawKey, name: res.apiKey.name })
+        setKeyCopied(false)
+      }
+    } catch (err) {
+      alert('Failed to generate key: ' + String(err))
+    } finally {
+      setIsGeneratingKey(false)
+    }
+  }
+
+  const handleRevokeKey = async (id: string, name: string) => {
+    if (!confirm(`Revoke API key "${name}"? Any integrations using this key will stop working immediately.`)) return
+    try {
+      const res = await revokeApiKeyAction(id)
+      if (res.error) {
+        alert(res.error)
+      } else {
+        setApiKeys(prev => prev.map(k => k.id === id ? { ...k, isRevoked: true } : k))
+      }
+    } catch (err) {
+      alert('Failed to revoke key: ' + String(err))
+    }
+  }
+
+  const handleRegenerateKey = async (id: string, name: string) => {
+    if (!confirm(`Regenerate API key "${name}"? The current key will be invalidated immediately.`)) return
+    try {
+      const res = await regenerateApiKeyAction(id)
+      if (res.error) {
+        alert(res.error)
+      } else if (res.apiKey && res.rawKey) {
+        setApiKeys(prev => prev.map(k => k.id === id ? { ...res.apiKey!, auditLogCount: k.auditLogCount + 1 } : k))
+        setRevealedKey({ raw: res.rawKey, name: res.apiKey.name })
+        setKeyCopied(false)
+      }
+    } catch (err) {
+      alert('Failed to regenerate key: ' + String(err))
+    }
+  }
+
+  const handleToggleAuditLog = async (id: string) => {
+    if (expandedKeyId === id) {
+      setExpandedKeyId(null)
+      return
+    }
+    setExpandedKeyId(id)
+    if (auditLogs[id]) return // already loaded
+
+    setLoadingAudit(id)
+    try {
+      const res = await getApiKeyAuditLogsAction(id)
+      if (!res.error) {
+        setAuditLogs(prev => ({ ...prev, [id]: res.logs }))
+      }
+    } catch { /* silent */ } finally {
+      setLoadingAudit(null)
+    }
+  }
+
+  const handleCopyKey = async (raw: string) => {
+    try {
+      await navigator.clipboard.writeText(raw)
+      setKeyCopied(true)
+      setTimeout(() => setKeyCopied(false), 3000)
+    } catch {
+      alert('Copy failed — please select and copy the key manually.')
+    }
+  }
+
+  const getKeyStatus = (k: ApiKeyRow) => {
+    if (k.isRevoked) return { label: 'Revoked', color: '#fca5a5', bg: 'rgba(244,63,94,0.15)', border: 'rgba(244,63,94,0.3)' }
+    if (k.expiresAt && new Date(k.expiresAt) < new Date()) return { label: 'Expired', color: '#94a3b8', bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)' }
+    return { label: 'Active', color: '#6ee7b7', bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.3)' }
+  }
+
+  const getAuditActionStyle = (action: string) => {
+    switch (action) {
+      case 'CREATED': return { color: '#6ee7b7', bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.3)' }
+      case 'REVOKED': return { color: '#fca5a5', bg: 'rgba(244,63,94,0.15)', border: 'rgba(244,63,94,0.3)' }
+      case 'REGENERATED': return { color: '#a78bfa', bg: 'rgba(139,92,246,0.15)', border: 'rgba(139,92,246,0.3)' }
+      case 'RATE_LIMITED': return { color: '#fcd34d', bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)' }
+      case 'USED': return { color: '#7dd3fc', bg: 'rgba(14,165,233,0.15)', border: 'rgba(14,165,233,0.3)' }
+      default: return { color: '#94a3b8', bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)' }
     }
   }
 
@@ -333,10 +632,57 @@ export default function SettingsForm({ initialBilling }: SettingsFormProps) {
             <CreditCard className="w-3.5 h-3.5" />
             Billing & Plans
           </button>
+          <button
+            onClick={() => setActiveSubTab('developer')}
+            type="button"
+            className={`w-full text-left px-3.5 py-2.5 rounded-lg font-bold flex items-center gap-2 transition-all cursor-pointer ${
+              activeSubTab === 'developer' ? 'bg-cyan-500 text-slate-950 font-black' : 'text-slate-400 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            <Key className="w-3.5 h-3.5" />
+            API Keys
+          </button>
+
+          {/* White Label — ADMIN only */}
+          {isOwnerOrAdmin && (
+            <>
+              <span className="text-[8px] font-bold uppercase tracking-wider text-slate-500 px-3 pt-3 pb-1">White Label</span>
+              <button
+                onClick={() => setActiveSubTab('branding')}
+                type="button"
+                className={`w-full text-left px-3.5 py-2.5 rounded-lg font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                  activeSubTab === 'branding' ? 'bg-violet-500 text-white font-black' : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <Palette className="w-3.5 h-3.5" />
+                Branding
+              </button>
+            </>
+          )}
         </div>
 
         {/* Right Side Content Form Container */}
         <div className="md:col-span-3">
+          {/* White Label Branding panel — rendered outside the main form */}
+          {activeSubTab === 'branding' && (
+            <div className="glass rounded-xl p-6 border border-white/5">
+              <BrandingPanel
+                initialBranding={initialBranding ?? {
+                  brandName: null,
+                  brandLogoUrl: null,
+                  brandColor: null,
+                  brandColorDark: null,
+                  emailFromName: null,
+                  emailFooterText: null,
+                  customDomain: null,
+                  customDomainVerified: false,
+                }}
+                currentUserRole={currentUserRole}
+              />
+            </div>
+          )}
+
+          {activeSubTab !== 'branding' && (
           <form onSubmit={handleSaveSettings} className="glass rounded-xl p-6 border border-white/5 space-y-6">
             
             {/* Tab 1: Profile & Org Settings */}
@@ -477,47 +823,30 @@ export default function SettingsForm({ initialBilling }: SettingsFormProps) {
                 <div className="space-y-4">
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                     <Users className="w-4 h-4 text-cyan-400" />
-                    Manage Users
+                    Manage Users ({users.length})
                   </h3>
                   <div className="glass rounded-lg border border-white/5 overflow-hidden">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse text-xs">
                       <thead>
                         <tr className="bg-slate-950/40 text-slate-400 font-bold border-b border-white/5">
                           <th className="px-4 py-2 font-semibold">User</th>
                           <th className="px-4 py-2 font-semibold">Email</th>
                           <th className="px-4 py-2 font-semibold">Team</th>
                           <th className="px-4 py-2 font-semibold">Role</th>
-                          <th className="px-4 py-2"></th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5 text-slate-300">
                         {users.map(u => (
                           <tr key={u.id} className="hover:bg-white/[0.01]">
                             <td className="px-4 py-2.5 font-bold text-white">
-                              {u.firstName} {u.lastName}
+                              {u.firstName || 'New'} {u.lastName || 'Member'}
                             </td>
                             <td className="px-4 py-2.5 font-mono text-slate-400">{u.email}</td>
                             <td className="px-4 py-2.5">{u.team}</td>
                             <td className="px-4 py-2.5">
-                              <select
-                                value={u.role}
-                                onChange={e => handleUpdateUserRole(u.id, e.target.value)}
-                                className="bg-slate-900 border border-white/10 text-slate-300 rounded px-2 py-1 outline-none text-[10px]"
-                              >
-                                <option value="ADMIN">ADMIN</option>
-                                <option value="MANAGER">MANAGER</option>
-                                <option value="QA">QA</option>
-                                <option value="AGENT">AGENT</option>
-                              </select>
-                            </td>
-                            <td className="px-4 py-2.5 text-right">
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteUser(u.id)}
-                                className="text-slate-500 hover:text-rose-400 p-1 cursor-pointer"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              <span className="bg-white/5 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded border border-white/10">
+                                {u.role}
+                              </span>
                             </td>
                           </tr>
                         ))}
@@ -525,68 +854,125 @@ export default function SettingsForm({ initialBilling }: SettingsFormProps) {
                     </table>
                   </div>
 
-                  {/* Invite User Form */}
-                  <div className="bg-slate-950/40 border border-white/5 rounded-xl p-4 space-y-3">
-                    <span className="font-bold text-slate-400 block">Invite New User</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <input
-                        type="text"
-                        value={newUserFirstName}
-                        onChange={e => setNewUserFirstName(e.target.value)}
-                        placeholder="First Name"
-                        className="bg-slate-900 border border-white/10 rounded px-2.5 py-1.5 text-white outline-none focus:border-cyan-500"
-                      />
-                      <input
-                        type="text"
-                        value={newUserLastName}
-                        onChange={e => setNewUserLastName(e.target.value)}
-                        placeholder="Last Name"
-                        className="bg-slate-900 border border-white/10 rounded px-2.5 py-1.5 text-white outline-none focus:border-cyan-500"
-                      />
-                      <input
-                        type="email"
-                        value={newUserEmail}
-                        onChange={e => setNewUserEmail(e.target.value)}
-                        placeholder="Email Address"
-                        className="bg-slate-900 border border-white/10 rounded px-2.5 py-1.5 text-white outline-none focus:border-cyan-500"
-                      />
-                    </div>
-                    <div className="flex gap-3 items-center">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-slate-500 font-bold uppercase">Role:</span>
-                        <select
-                          value={newUserRole}
-                          onChange={e => setNewUserRole(e.target.value)}
-                          className="bg-slate-900 border border-white/10 text-slate-300 rounded px-2.5 py-1.5 outline-none"
-                        >
-                          <option value="AGENT">AGENT</option>
-                          <option value="QA">QA</option>
-                          <option value="MANAGER">MANAGER</option>
-                          <option value="ADMIN">ADMIN</option>
-                        </select>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-slate-500 font-bold uppercase">Assign Team:</span>
-                        <select
-                          value={newUserTeam}
-                          onChange={e => setNewUserTeam(e.target.value)}
-                          className="bg-slate-900 border border-white/10 text-slate-300 rounded px-2.5 py-1.5 outline-none"
-                        >
-                          {teams.map(t => (
-                            <option key={t.id} value={t.name}>{t.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleAddUser}
-                        className="ml-auto bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-4 py-1.5 rounded-lg flex items-center gap-1 cursor-pointer"
-                      >
-                        <PlusCircle className="w-3.5 h-3.5" />
-                        Invite
-                      </button>
+                  {/* 4.1.2 Pending & Past Invitations */}
+                  <div className="space-y-2 pt-2">
+                    <h4 className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider pl-1">
+                      Organization Invitations ({invitations.length})
+                    </h4>
+                    
+                    <div className="glass rounded-lg border border-white/5 overflow-hidden">
+                      {invitations.length === 0 ? (
+                        <div className="p-6 text-center text-slate-500 italic text-[10px]">No invitations sent yet.</div>
+                      ) : (
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead>
+                            <tr className="bg-slate-950/40 text-slate-400 font-bold border-b border-white/5">
+                              <th className="px-4 py-2 font-semibold">Invitee Email</th>
+                              <th className="px-4 py-2 font-semibold">Role</th>
+                              <th className="px-4 py-2 font-semibold">Sent Date</th>
+                              <th className="px-4 py-2 font-semibold">Status</th>
+                              {isOwnerOrAdmin && <th className="px-4 py-2"></th>}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5 text-slate-300">
+                            {invitations.map(invite => {
+                              const status = getInviteStatus(invite)
+                              const isPending = status.label === 'Pending'
+                              
+                              return (
+                                <tr key={invite.id} className="hover:bg-white/[0.01]">
+                                  <td className="px-4 py-2.5 font-semibold text-white">{invite.email}</td>
+                                  <td className="px-4 py-2.5 font-mono text-slate-400 text-[10px]">{invite.role}</td>
+                                  <td className="px-4 py-2.5 text-slate-400">{new Date(invite.createdAt).toLocaleDateString()}</td>
+                                  <td className="px-4 py-2.5">
+                                    <span
+                                      className="px-2 py-0.5 rounded text-[9px] font-bold border"
+                                      style={{
+                                        background: status.bg,
+                                        borderColor: status.border,
+                                        color: status.color,
+                                      }}
+                                    >
+                                      {status.label}
+                                    </span>
+                                  </td>
+                                  {isOwnerOrAdmin && (
+                                    <td className="px-4 py-2.5 text-right space-x-2">
+                                      {isPending && (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleResendInvite(invite.id)}
+                                            title="Resend Invite"
+                                            className="text-amber-400 hover:text-amber-300 text-[10px] font-bold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded cursor-pointer transition-colors"
+                                          >
+                                            Resend
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleRevokeInvite(invite.id)}
+                                            title="Revoke Invite"
+                                            className="text-rose-400 hover:text-rose-300 text-[10px] font-bold bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded cursor-pointer transition-colors"
+                                          >
+                                            Revoke
+                                          </button>
+                                        </>
+                                      )}
+                                    </td>
+                                  )}
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      )}
                     </div>
                   </div>
+
+                  {/* Invite User Form */}
+                  {isOwnerOrAdmin ? (
+                    <form onSubmit={handleInviteUser} className="bg-slate-950/40 border border-white/5 rounded-xl p-4 space-y-3">
+                      <span className="font-bold text-slate-400 block">Invite New User</span>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="sm:col-span-2">
+                          <input
+                            type="email"
+                            required
+                            value={inviteEmail}
+                            onChange={e => setInviteEmail(e.target.value)}
+                            placeholder="Email Address (e.g. name@company.com)"
+                            className="w-full bg-slate-900 border border-white/10 rounded px-2.5 py-1.5 text-white outline-none focus:border-cyan-500"
+                          />
+                        </div>
+                        <div>
+                          <select
+                            value={inviteRole}
+                            onChange={e => setInviteRole(e.target.value)}
+                            className="w-full bg-slate-900 border border-white/10 text-slate-300 rounded px-2.5 py-1.5 outline-none focus:border-cyan-500"
+                          >
+                            <option value="AGENT">AGENT</option>
+                            <option value="QA">QA</option>
+                            <option value="MANAGER">MANAGER</option>
+                            <option value="ADMIN">ADMIN</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex justify-end pt-1">
+                        <button
+                          type="submit"
+                          disabled={isInviting}
+                          className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-5 py-1.5 rounded-lg flex items-center gap-1 cursor-pointer transition-all disabled:opacity-50"
+                        >
+                          <PlusCircle className="w-3.5 h-3.5" />
+                          {isInviting ? 'Inviting...' : 'Send Invitation'}
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="p-4 bg-slate-900/40 border border-white/5 rounded-xl text-slate-500 text-[10px] text-center italic">
+                      Only organization owners and administrators can manage invites.
+                    </div>
+                  )}
                 </div>
 
                 {/* 4.2 Teams Management */}
@@ -1012,31 +1398,139 @@ export default function SettingsForm({ initialBilling }: SettingsFormProps) {
                   </div>
 
                   {/* Usage Card */}
-                  <div className="glass p-5 rounded-xl border border-white/5 space-y-3">
+                  <div className="glass p-5 rounded-xl border border-white/5 space-y-4">
                     <span className="font-bold text-slate-400 uppercase tracking-wider block text-[10px]">
-                      Usage Limits
+                      Usage Limits & Quotas
                     </span>
-                    <div className="flex justify-between items-baseline">
-                      <span className="text-2xl font-mono font-black text-white">
-                        {billing.usedCalls} 
-                        <span className="text-xs text-slate-500 font-normal"> / {billing.callLimit >= 999999 ? 'Unlimited' : `${billing.callLimit} calls`}</span>
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        {billing.callLimit >= 999999 ? '0' : Math.min(100, Math.round((billing.usedCalls / billing.callLimit) * 100))}% Used
-                      </span>
+                    
+                    <div className="space-y-4">
+                      {/* Metric 1: Call Volume */}
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-baseline">
+                          <span className="text-[10px] text-slate-300 font-bold flex items-center gap-1.5">
+                            <CreditCard className="w-3.5 h-3.5 text-cyan-400" />
+                            Calls Volume
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {billing.usedCalls} / {billing.callLimit >= 999999 ? 'Unlimited' : `${billing.callLimit} calls`}
+                            <span className="ml-1 text-[9px] text-slate-500 font-bold">
+                              ({billing.callLimit >= 999999 ? '0' : Math.min(100, Math.round((billing.usedCalls / billing.callLimit) * 100))}% Used)
+                            </span>
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-950/60 rounded-full h-1.5 overflow-hidden border border-white/5">
+                          <div
+                            className="bg-cyan-500 h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${billing.callLimit >= 999999 ? 0 : Math.min(100, Math.round((billing.usedCalls / billing.callLimit) * 100))}%`,
+                              boxShadow: '0 0 6px rgba(6,182,212,0.5)',
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Metric 2: Storage */}
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-baseline">
+                          <span className="text-[10px] text-slate-300 font-bold flex items-center gap-1.5">
+                            <HardDrive className="w-3.5 h-3.5 text-violet-400" />
+                            Cloud Storage
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {formatBytes(billing.storageUsedBytes)} / {formatBytes(billing.storageLimit)}
+                            <span className="ml-1 text-[9px] text-slate-500 font-bold">
+                              ({Math.min(100, Math.round((billing.storageUsedBytes / billing.storageLimit) * 100))}% Used)
+                            </span>
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-950/60 rounded-full h-1.5 overflow-hidden border border-white/5">
+                          <div
+                            className="bg-violet-500 h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.min(100, Math.round((billing.storageUsedBytes / billing.storageLimit) * 100))}%`,
+                              boxShadow: '0 0 6px rgba(139,92,246,0.5)',
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Metric 3: AI Requests */}
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-baseline">
+                          <span className="text-[10px] text-slate-300 font-bold flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                            Gemini AI Requests
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {billing.aiRequestsUsed} / {billing.aiRequestsLimit >= 999999 ? 'Unlimited' : `${billing.aiRequestsLimit} reqs`}
+                            <span className="ml-1 text-[9px] text-slate-500 font-bold">
+                              ({billing.aiRequestsLimit >= 999999 ? '0' : Math.min(100, Math.round((billing.aiRequestsUsed / billing.aiRequestsLimit) * 100))}% Used)
+                            </span>
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-950/60 rounded-full h-1.5 overflow-hidden border border-white/5">
+                          <div
+                            className="bg-amber-500 h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${billing.aiRequestsLimit >= 999999 ? 0 : Math.min(100, Math.round((billing.aiRequestsUsed / billing.aiRequestsLimit) * 100))}%`,
+                              boxShadow: '0 0 6px rgba(245,158,11,0.5)',
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Metric 4: QA Agents */}
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-baseline">
+                          <span className="text-[10px] text-slate-300 font-bold flex items-center gap-1.5">
+                            <Users className="w-3.5 h-3.5 text-emerald-400" />
+                            QA Agent Seats
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {billing.agentsUsed} / {billing.agentsLimit >= 999999 ? 'Unlimited' : `${billing.agentsLimit} seats`}
+                            <span className="ml-1 text-[9px] text-slate-500 font-bold">
+                              ({billing.agentsLimit >= 999999 ? '0' : Math.min(100, Math.round((billing.agentsUsed / billing.agentsLimit) * 100))}% Used)
+                            </span>
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-950/60 rounded-full h-1.5 overflow-hidden border border-white/5">
+                          <div
+                            className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${billing.agentsLimit >= 999999 ? 0 : Math.min(100, Math.round((billing.agentsUsed / billing.agentsLimit) * 100))}%`,
+                              boxShadow: '0 0 6px rgba(16,185,129,0.5)',
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Metric 5: QA Reports */}
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-baseline">
+                          <span className="text-[10px] text-slate-300 font-bold flex items-center gap-1.5">
+                            <BarChart3 className="w-3.5 h-3.5 text-rose-400" />
+                            QA Reports Generated
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {billing.reportsUsed} / {billing.reportsLimit >= 999999 ? 'Unlimited' : `${billing.reportsLimit} reports`}
+                            <span className="ml-1 text-[9px] text-slate-500 font-bold">
+                              ({billing.reportsLimit >= 999999 ? '0' : Math.min(100, Math.round((billing.reportsUsed / billing.reportsLimit) * 100))}% Used)
+                            </span>
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-950/60 rounded-full h-1.5 overflow-hidden border border-white/5">
+                          <div
+                            className="bg-rose-500 h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${billing.reportsLimit >= 999999 ? 0 : Math.min(100, Math.round((billing.reportsUsed / billing.reportsLimit) * 100))}%`,
+                              boxShadow: '0 0 6px rgba(244,63,94,0.5)',
+                            }}
+                          />
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Progress Bar */}
-                    <div className="w-full bg-slate-950/60 rounded-full h-2 overflow-hidden border border-white/5">
-                      <div
-                        className="bg-cyan-500 h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${billing.callLimit >= 999999 ? 0 : Math.min(100, Math.round((billing.usedCalls / billing.callLimit) * 100))}%`,
-                          boxShadow: '0 0 8px rgba(6,182,212,0.5)',
-                        }}
-                      />
-                    </div>
-                    <span className="block text-[9px] text-slate-500 leading-normal">
+                    <span className="block text-[9px] text-slate-500 leading-normal border-t border-white/5 pt-2">
                       Usage resets monthly. Upgrade plan to expand limits immediately.
                     </span>
                   </div>
@@ -1184,7 +1678,341 @@ export default function SettingsForm({ initialBilling }: SettingsFormProps) {
               </div>
             )}
 
-            {/* Submit / Action Bar */}
+            {/* ── Developer: API Keys Tab ────────────────────────── */}
+            {activeSubTab === 'developer' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Key className="w-4 h-4 text-cyan-400" />
+                    API Key Management
+                  </h3>
+                  <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+                    Generate API keys for external integrations. Keys are stored as secure hashes — the full key is shown only once upon creation.
+                  </p>
+                </div>
+
+                {/* Usage Stats Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: 'Total Keys', value: apiKeys.length, icon: Key, color: 'text-slate-400' },
+                    { label: 'Active', value: apiKeys.filter(k => !k.isRevoked && (!k.expiresAt || new Date(k.expiresAt) > new Date())).length, icon: Zap, color: 'text-emerald-400' },
+                    { label: 'Revoked', value: apiKeys.filter(k => k.isRevoked).length, icon: Shield, color: 'text-rose-400' },
+                    { label: 'Expired', value: apiKeys.filter(k => !k.isRevoked && k.expiresAt && new Date(k.expiresAt) < new Date()).length, icon: Clock, color: 'text-amber-400' },
+                  ].map(stat => (
+                    <div key={stat.label} className="glass rounded-xl border border-white/5 p-3 flex flex-col gap-1">
+                      <stat.icon className={`w-3.5 h-3.5 ${stat.color}`} />
+                      <span className="text-lg font-black text-white">{stat.value}</span>
+                      <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">{stat.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Active Keys Table */}
+                <div className="space-y-2">
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Keys ({apiKeys.length})</h4>
+                  {apiKeys.length === 0 ? (
+                    <div className="glass rounded-xl border border-white/5 p-8 text-center">
+                      <Key className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                      <p className="text-slate-500 text-[10px]">No API keys yet. Generate your first key below.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {apiKeys.map(k => {
+                        const status = getKeyStatus(k)
+                        const isExpanded = expandedKeyId === k.id
+                        const logs = auditLogs[k.id] ?? []
+
+                        return (
+                          <div key={k.id} className="glass rounded-xl border border-white/5 overflow-hidden">
+                            {/* Key Row */}
+                            <div className="flex items-center gap-3 px-4 py-3">
+                              {/* Name + prefix */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-bold text-white">{k.name}</span>
+                                  <span
+                                    className="px-1.5 py-0.5 rounded text-[9px] font-bold border"
+                                    style={{ background: status.bg, borderColor: status.border, color: status.color }}
+                                  >
+                                    {status.label}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                                  <code className="font-mono text-[10px] text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded">
+                                    {k.keyPrefix}••••••••••••••••
+                                  </code>
+                                  <span className="text-[9px] text-slate-500">{k.rateLimitRpm} req/min</span>
+                                  {k.lastUsedAt && (
+                                    <span className="text-[9px] text-slate-500">
+                                      Last used {new Date(k.lastUsedAt).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                  {k.expiresAt && (
+                                    <span className="text-[9px] text-slate-500">
+                                      Expires {new Date(k.expiresAt).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                </div>
+                                {/* Scopes */}
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {k.scopes.map(scope => (
+                                    <span key={scope} className="text-[8px] font-bold bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 px-1.5 py-0.5 rounded">
+                                      {scope}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Actions */}
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleAuditLog(k.id)}
+                                  className="text-[9px] font-bold text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-2 py-1 rounded flex items-center gap-1 cursor-pointer transition-colors"
+                                >
+                                  {loadingAudit === k.id ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : isExpanded ? (
+                                    <ChevronUp className="w-3 h-3" />
+                                  ) : (
+                                    <ChevronDown className="w-3 h-3" />
+                                  )}
+                                  Logs ({k.auditLogCount})
+                                </button>
+                                {!k.isRevoked && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRegenerateKey(k.id, k.name)}
+                                    title="Regenerate"
+                                    className="text-[9px] font-bold text-violet-400 hover:text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 px-2 py-1 rounded flex items-center gap-1 cursor-pointer transition-colors"
+                                  >
+                                    <RefreshCw className="w-3 h-3" />
+                                    Regen
+                                  </button>
+                                )}
+                                {!k.isRevoked && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRevokeKey(k.id, k.name)}
+                                    title="Revoke Key"
+                                    className="text-[9px] font-bold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 px-2 py-1 rounded flex items-center gap-1 cursor-pointer transition-colors"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    Revoke
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Audit Log Drawer */}
+                            {isExpanded && (
+                              <div className="border-t border-white/5 bg-slate-950/40 px-4 py-3">
+                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-2">Audit Log</p>
+                                {loadingAudit === k.id ? (
+                                  <div className="flex items-center gap-2 text-slate-500 text-[10px]">
+                                    <Loader2 className="w-3 h-3 animate-spin" /> Loading...
+                                  </div>
+                                ) : logs.length === 0 ? (
+                                  <p className="text-slate-600 text-[10px] italic">No audit entries yet.</p>
+                                ) : (
+                                  <div className="space-y-1.5">
+                                    {logs.map(log => {
+                                      const ls = getAuditActionStyle(log.action)
+                                      return (
+                                        <div key={log.id} className="flex items-start gap-2.5">
+                                          <span
+                                            className="shrink-0 px-1.5 py-0.5 rounded text-[8px] font-bold border"
+                                            style={{ background: ls.bg, borderColor: ls.border, color: ls.color }}
+                                          >
+                                            {log.action}
+                                          </span>
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-[10px] text-slate-300 truncate">{log.details ?? '—'}</p>
+                                            <div className="flex items-center gap-2 text-[9px] text-slate-500 mt-0.5">
+                                              <Clock className="w-2.5 h-2.5" />
+                                              {new Date(log.createdAt).toLocaleString()}
+                                              {log.ipAddress && <span>· {log.ipAddress}</span>}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Generate New API Key Form */}
+                {isOwnerOrAdmin ? (
+                  <form onSubmit={handleGenerateKey} className="bg-slate-950/40 border border-white/5 rounded-xl p-5 space-y-4">
+                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <PlusCircle className="w-3.5 h-3.5 text-cyan-400" />
+                      Generate New API Key
+                    </h4>
+
+                    {/* Name */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Key Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={newKeyName}
+                        onChange={e => setNewKeyName(e.target.value)}
+                        placeholder="e.g. Production Integration, Staging Bot"
+                        className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:border-cyan-500 text-xs"
+                      />
+                    </div>
+
+                    {/* Scopes */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Permission Scopes</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {API_SCOPES.map(scope => {
+                          const isSelected = newKeyScopes.includes(scope.id)
+                          return (
+                            <button
+                              key={scope.id}
+                              type="button"
+                              onClick={() => handleScopeToggle(scope.id)}
+                              className={`flex items-start gap-2 p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-cyan-500/15 border-cyan-500/40 text-white'
+                                  : 'bg-white/[0.02] border-white/5 text-slate-400 hover:bg-white/5'
+                              }`}
+                            >
+                              <div className={`w-3.5 h-3.5 mt-0.5 rounded border flex items-center justify-center shrink-0 ${
+                                isSelected ? 'bg-cyan-500 border-cyan-500' : 'border-white/20'
+                              }`}>
+                                {isSelected && <Check className="w-2.5 h-2.5 text-slate-950" />}
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-bold leading-none">{scope.label}</p>
+                                <p className="text-[9px] text-slate-500 mt-0.5 leading-snug">{scope.description}</p>
+                              </div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Rate Limit + Expiry */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Rate Limit (req/min)</label>
+                        <select
+                          value={newKeyRpm}
+                          onChange={e => setNewKeyRpm(Number(e.target.value))}
+                          className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:border-cyan-500 text-xs"
+                        >
+                          <option value={60}>60 req/min</option>
+                          <option value={120}>120 req/min</option>
+                          <option value={300}>300 req/min</option>
+                          <option value={600}>600 req/min</option>
+                          <option value={1200}>1200 req/min</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Expiry Date (optional)</label>
+                        <input
+                          type="date"
+                          value={newKeyExpiry}
+                          onChange={e => setNewKeyExpiry(e.target.value)}
+                          min={new Date().toISOString().split('T')[0]}
+                          className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:border-cyan-500 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Security Notice */}
+                    <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                      <p className="text-[10px] text-amber-300/80 leading-relaxed">
+                        The full API key will be shown <strong>once only</strong> after generation. Store it in a secure vault — it cannot be retrieved later.
+                      </p>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={isGeneratingKey || newKeyScopes.length === 0}
+                        className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black px-5 py-2 rounded-lg flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+                      >
+                        {isGeneratingKey ? (
+                          <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating...</>
+                        ) : (
+                          <><Key className="w-3.5 h-3.5" /> Generate Key</>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="p-4 bg-slate-900/40 border border-white/5 rounded-xl text-slate-500 text-[10px] text-center italic">
+                    Only organization administrators can manage API keys.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── One-Time Key Reveal Modal ──────────────────────── */}
+            {revealedKey && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+                <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                      <Key className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-white text-sm">Your API Key — "{revealedKey.name}"</h3>
+                      <p className="text-[10px] text-slate-500">Copy this key now. It will never be shown again.</p>
+                    </div>
+                  </div>
+
+                  {/* Key display */}
+                  <div className="bg-slate-950 border border-white/10 rounded-xl p-4 space-y-3">
+                    <code className="block break-all font-mono text-xs text-cyan-300 leading-relaxed select-all">
+                      {revealedKey.raw}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyKey(revealedKey.raw)}
+                      className={`w-full py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        keyCopied
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950'
+                      }`}
+                    >
+                      {keyCopied ? (
+                        <><Check className="w-3.5 h-3.5" /> Copied to Clipboard!</>
+                      ) : (
+                        <><Copy className="w-3.5 h-3.5" /> Copy API Key</>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-amber-300/80 leading-relaxed">
+                      This key will not be retrievable once you dismiss this dialog. Store it in a password manager or secrets vault immediately.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setRevealedKey(null)}
+                    className="w-full py-2.5 rounded-lg font-bold text-xs bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white cursor-pointer transition-colors"
+                  >
+                    I've saved the key — Dismiss
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="pt-4 border-t border-white/5 flex justify-end">
               <button
                 type="submit"
@@ -1206,6 +2034,7 @@ export default function SettingsForm({ initialBilling }: SettingsFormProps) {
             </div>
 
           </form>
+          )} {/* end activeSubTab !== 'branding' conditional */}
         </div>
 
       </div>

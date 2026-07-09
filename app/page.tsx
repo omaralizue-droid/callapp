@@ -1,5 +1,4 @@
-'use client'
-
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import {
   ShieldCheck, TrendingUp, Sparkles, FileSpreadsheet,
@@ -8,6 +7,37 @@ import {
 import InteractiveDemo from '@/components/landing/InteractiveDemo'
 import LandingHeroAnimation from '@/components/landing/LandingHeroAnimation'
 import GoogleNav from '@/components/landing/GoogleNav'
+
+export const metadata: Metadata = {
+  title: 'CallPilot AI | Enterprise Conversation Intelligence & QA Audit',
+  description: 'Automatically audit 100% of customer support and BPO calls with AI. Score compliance checklists, identify sentiment trends, reduce wrap-up times, and coach agents in real-time.',
+  openGraph: {
+    title: 'CallPilot AI | Enterprise Conversation Intelligence & QA Audit',
+    description: 'Automatically audit 100% of customer support and BPO calls with AI. Score compliance checklists, identify sentiment trends, reduce wrap-up times, and coach agents in real-time.',
+    url: 'https://callpilot.ai',
+    siteName: 'CallPilot AI',
+    type: 'website',
+  },
+}
+
+const orgStructuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  'name': 'CallPilot AI',
+  'applicationCategory': 'BusinessApplication',
+  'operatingSystem': 'Web',
+  'offers': {
+    '@type': 'Offer',
+    'price': '49.00',
+    'priceCurrency': 'USD'
+  },
+  'description': 'Automatically audit 100% of customer support and BPO calls with AI. Score compliance checklists, identify sentiment trends, reduce wrap-up times, and coach agents in real-time.',
+  'aggregateRating': {
+    '@type': 'AggregateRating',
+    'ratingValue': '4.9',
+    'ratingCount': '120'
+  }
+}
 
 const FEATURES = [
   {
@@ -126,6 +156,10 @@ export default function Home() {
       className="min-h-screen flex flex-col font-sans overflow-x-hidden"
       style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgStructuredData) }}
+      />
       {/* Navigation */}
       <GoogleNav />
 
@@ -230,10 +264,7 @@ export default function Home() {
             {LOGOS.map(logo => (
               <span
                 key={logo}
-                className="text-sm font-bold tracking-wide transition-colors cursor-default"
-                style={{ color: 'rgba(148,163,184,0.5)' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#818cf8')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(148,163,184,0.5)')}
+                className="text-sm font-bold tracking-wide transition-colors cursor-default text-slate-400/50 hover:text-indigo-400"
               >
                 {logo}
               </span>

@@ -1,7 +1,24 @@
-'use client'
-
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import GoogleNav from '@/components/landing/GoogleNav'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | CallPilot AI',
+  description: 'Read CallPilot AI Terms of Service to understand account responsibilities, billing subscriptions, limitations of liability, and call recording consent laws.',
+  openGraph: {
+    title: 'Terms of Service | CallPilot AI',
+    description: 'Read CallPilot AI Terms of Service to understand account responsibilities, billing subscriptions, limitations of liability, and call recording consent laws.',
+    url: 'https://callpilot.ai/terms',
+    type: 'website',
+  }
+}
+
+const termsStructuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  'name': 'CallPilot AI Terms of Service',
+  'url': 'https://callpilot.ai/terms',
+}
 
 const SECTIONS = [
   {
@@ -40,37 +57,50 @@ const SECTIONS = [
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans transition-colors duration-200">
+    <div
+      className="min-h-screen flex flex-col font-sans overflow-x-hidden"
+      style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+    >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(termsStructuredData) }}
+      />
       <GoogleNav />
 
-      <section className="py-16 px-6 bg-slate-50/50 border-b border-slate-100">
-        <div className="max-w-3xl mx-auto">
-          <p className="text-sm font-semibold text-indigo-600 mb-3 uppercase tracking-wide">Legal</p>
-          <h1 className="text-4xl font-extrabold mb-3 text-slate-900">Terms of Service</h1>
-          <p className="text-xs text-slate-500">Last updated: January 1, 2025</p>
+      {/* Hero */}
+      <section className="relative py-20 px-6 text-center border-b border-white/5 overflow-hidden aurora-bg">
+        <div className="relative z-10 max-w-3xl mx-auto">
+          <p className="text-xs font-bold uppercase tracking-widest mb-3 gradient-text">Legal</p>
+          <h1 className="text-4xl font-black text-white tracking-tight mb-3">Terms of Service</h1>
+          <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Last updated: January 1, 2025</p>
         </div>
       </section>
 
-      <main className="py-16 px-6 flex-grow bg-white">
-        <div className="max-w-3xl mx-auto space-y-6">
-          <div className="p-7 rounded-xl border border-slate-200 bg-white">
-            <p className="text-sm leading-relaxed text-slate-600">
+      {/* Main Content */}
+      <main className="py-16 px-6 flex-grow" style={{ background: 'var(--bg-secondary)' }}>
+        <div className="max-w-3xl mx-auto space-y-6 relative z-10">
+          
+          {/* Introduction card */}
+          <div className="glass-card p-6 border border-white/5">
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
               Please read these Terms of Service carefully before using CallPilot AI. These terms constitute a legally binding agreement between you and CallPilot AI Inc. governing your access to and use of the CallPilot platform and services.
             </p>
           </div>
 
+          {/* Policy sections */}
           {SECTIONS.map((section, idx) => (
-            <div key={idx} className="p-7 rounded-xl border border-slate-200 bg-white">
-              <h2 className="text-base font-bold mb-3 text-slate-900">{section.title}</h2>
-              <p className="text-sm leading-relaxed text-slate-600">{section.content}</p>
+            <div key={idx} className="glass-card p-6 border border-white/5">
+              <h2 className="text-sm font-bold mb-3 text-white">{section.title}</h2>
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{section.content}</p>
             </div>
           ))}
 
-          <div className="p-7 rounded-xl border border-slate-200 bg-white">
-            <h2 className="text-base font-bold mb-3 text-slate-900">9. Contact Us</h2>
-            <p className="text-sm leading-relaxed text-slate-600">
+          {/* Contact */}
+          <div className="glass-card p-6 border border-white/5">
+            <h2 className="text-sm font-bold mb-3 text-white">9. Contact Us</h2>
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
               Questions about these Terms? Contact us at:{' '}
-              <a href="mailto:legal@callpilot.ai" className="font-semibold text-indigo-600 hover:underline">
+              <a href="mailto:legal@callpilot.ai" className="font-bold text-indigo-400 hover:text-indigo-300 transition-colors">
                 legal@callpilot.ai
               </a>
             </p>
@@ -78,11 +108,12 @@ export default function TermsPage() {
         </div>
       </main>
 
-      <footer className="border-t border-slate-100 py-8 px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500 bg-slate-50/50">
+      {/* Footer */}
+      <footer className="border-t border-white/5 py-8 px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs bg-slate-950/80" style={{ color: 'var(--text-secondary)' }}>
         <p>© {new Date().getFullYear()} CallPilot AI Inc. All rights reserved.</p>
         <div className="flex gap-6">
-          <Link href="/privacy" className="hover:text-indigo-600 transition-colors">Privacy</Link>
-          <Link href="/terms" className="text-indigo-600 font-medium">Terms</Link>
+          <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+          <Link href="/terms" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors">Terms of Service</Link>
         </div>
       </footer>
     </div>

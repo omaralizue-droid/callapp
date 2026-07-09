@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/db'
 import DashboardShell from '@/components/dashboard/DashboardShell'
+import { resolveBranding, buildBrandCssVars } from '@/lib/branding'
 
 export default async function DashboardLayout({
   children,
@@ -46,5 +47,59 @@ export default async function DashboardLayout({
     }
   }
 
-  return <DashboardShell profile={dbUser}>{children}</DashboardShell>
+  // Fetch branding for the user's organization
+  const orgBrandingRow = await (async () => {
+    try {
+      // Find the user's organizationId first
+      const profile = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { organizationId: true },
+      })
+      if (!profile?.organizationId) return null
+
+      return prisma.organization.findUnique({
+        where: { id: profile.organizationId },
+        select: {
+          brandName:            true,
+          brandLogoUrl:         true,
+          brandColor:           true,
+          brandColorDark:       true,
+          emailFromName:        true,
+          emailFooterText:      true,
+          customDomain:         true,
+          customDomainVerified: true,
+        },
+      })
+    } catch {
+      return null
+    }
+  })()
+
+  const branding = resolveBranding(orgBrandingRow)
+  const brandCssVars = buildBrandCssVars(branding)
+
+  const notifications = await prisma.notification.findMany({
+    where: {
+      userId: user.id,
+      isDeleted: false,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    take: 20,
+  })
+
+  return (
+    <>
+      {/* Inject brand CSS variables as inline style — overrides :root defaults from globals.css */}
+      <style dangerouslySetInnerHTML={{ __html: brandCssVars }} />
+      <DashboardShell
+        profile={dbUser}
+        initialNotifications={notifications as any}
+        branding={branding}
+      >
+        {children}
+      </DashboardShell>
+    </>
+  )
 }

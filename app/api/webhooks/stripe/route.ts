@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getStripe, getPlanByPriceId, STRIPE_PLANS } from '@/services/stripe'
+import { getPlanLimits } from '@/services/usage'
 import prisma from '@/lib/db'
 import Stripe from 'stripe'
 
@@ -51,6 +52,7 @@ export async function POST(req: Request) {
         const priceId = subscription.items.data[0].price.id
         const targetPlan = getPlanByPriceId(priceId)
 
+        const limits = await getPlanLimits(targetPlan.name)
         await prisma.organization.update({
           where: { id: orgId },
           data: {
@@ -59,7 +61,11 @@ export async function POST(req: Request) {
             planName: targetPlan.name,
             planStatus: 'ACTIVE',
             stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
-            callLimit: targetPlan.callsLimit,
+            callLimit: limits.calls,
+            storageLimit: limits.storageBytes,
+            aiRequestsLimit: limits.aiRequests,
+            agentsLimit: limits.agents,
+            reportsLimit: limits.reports,
             trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
           },
         })
@@ -125,6 +131,7 @@ export async function POST(req: Request) {
         if (subscription.status === 'unpaid') status = 'EXPIRED'
         if (subscription.status === 'trialing') status = 'TRIAL'
 
+        const limits = await getPlanLimits(targetPlan.name)
         await prisma.organization.update({
           where: { id: org.id },
           data: {
@@ -133,7 +140,11 @@ export async function POST(req: Request) {
             planStatus: status,
             stripeCancelAtPeriodEnd: subscription.cancel_at_period_end,
             stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
-            callLimit: targetPlan.callsLimit,
+            callLimit: limits.calls,
+            storageLimit: limits.storageBytes,
+            aiRequestsLimit: limits.aiRequests,
+            agentsLimit: limits.agents,
+            reportsLimit: limits.reports,
             trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
           },
         })
@@ -151,6 +162,7 @@ export async function POST(req: Request) {
         if (!org) break
 
         // EXPIRED/CANCELLED subscription resets organization plan to default Free Starter plan
+        const limits = await getPlanLimits('Starter')
         await prisma.organization.update({
           where: { id: org.id },
           data: {
@@ -160,7 +172,11 @@ export async function POST(req: Request) {
             stripeSubscriptionId: null,
             stripeCurrentPeriodEnd: null,
             stripeCancelAtPeriodEnd: false,
-            callLimit: STRIPE_PLANS.starter.callsLimit,
+            callLimit: limits.calls,
+            storageLimit: limits.storageBytes,
+            aiRequestsLimit: limits.aiRequests,
+            agentsLimit: limits.agents,
+            reportsLimit: limits.reports,
           },
         })
         break

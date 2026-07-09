@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { GeminiService } from '@/services/gemini'
+import { checkLimit } from '@/services/usage'
+import { enqueueJob } from '@/lib/queue'
 import { Prisma } from '@prisma/client'
 import prisma from '@/lib/db'
 
@@ -100,6 +102,27 @@ export async function createCallAction(input: CreateCallInput) {
     organizationId = dbUser.organizationId
   }
 
+  // ── Enforce Limits ──────────────────────────────────────────────────────────
+  const callsLimitCheck = await checkLimit(organizationId, 'calls', 1)
+  if (!callsLimitCheck.allowed) {
+    return { error: 'Call limit exceeded. Please upgrade your plan.' }
+  }
+
+  const storageLimitCheck = await checkLimit(organizationId, 'storage', input.fileSize)
+  if (!storageLimitCheck.allowed) {
+    return { error: 'Storage limit exceeded. Please upgrade your plan.' }
+  }
+
+  const aiRequestsLimitCheck = await checkLimit(organizationId, 'aiRequests', 1)
+  if (!aiRequestsLimitCheck.allowed) {
+    return { error: 'AI requests limit exceeded. Please upgrade your plan.' }
+  }
+
+  const reportsLimitCheck = await checkLimit(organizationId, 'reports', 1)
+  if (!reportsLimitCheck.allowed) {
+    return { error: 'QA reports limit exceeded. Please upgrade your plan.' }
+  }
+
   // Setup Default Fallback Mock Metrics
   let summary = 'The client disputed a subscription billing charge. The agent handled verification correctly and processed a partial refund matching guidelines.'
   let sentimentOverall: 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE' = 'NEUTRAL'
@@ -195,102 +218,10 @@ export async function createCallAction(input: CreateCallInput) {
     return { error: 'GEMINI_API_KEY is not configured in your Vercel/local environment variables. Please add it to your project settings.' }
   }
 
-  // 1. Run Gemini 2.5 Live analysis if Api Key exists
-  if (process.env.GEMINI_API_KEY) {
-    try {
-      if (process.env.NODE_ENV !== 'production') console.info(`[Gemini] Executing audio analysis pipeline: ${input.fileUrl}`)
-      const audioBuffer = await GeminiService.downloadAudio(input.fileUrl)
-      
-      const fileExt = input.filename.split('.').pop()?.toLowerCase()
-      let mimeType = 'audio/mpeg'
-      if (fileExt === 'wav') mimeType = 'audio/wav'
-      if (fileExt === 'm4a') mimeType = 'audio/x-m4a'
-      if (fileExt === 'aac') mimeType = 'audio/x-aac'
-
-      const rubric = {
-        compliance: [
-          'Branded greeting used within first 5 seconds',
-          'Recording disclosure stated explicitly',
-          'Verify caller account identity and security tokens',
-          'Offer standard recap and cancellation timelines',
-        ],
-        softSkills: [
-          'Active Listening & Tone',
-          'Professionalism & Empathy',
-          'Resolution Speed',
-        ],
-      }
-
-      const geminiResult = await GeminiService.analyzeCall(audioBuffer, mimeType, rubric)
-      
-      // Override default variables with actual Gemini API outputs
-      summary = geminiResult.summary
-      sentimentOverall = geminiResult.sentimentOverall
-      sentimentScore = geminiResult.sentimentScore
-      transcript = geminiResult.transcript
-      coachingTips = geminiResult.coachingTips
-      strengths = geminiResult.strengths
-      improvements = geminiResult.improvements
-
-      // Score Calculations - Mathematical average of all 8 QA rubric checklist categories
-      const sc = geminiResult.qaScorecard
-      score = Math.round(
-        (sc.greeting.score +
-          sc.verification.score +
-          sc.compliance.score +
-          sc.empathy.score +
-          sc.listening.score +
-          sc.problemSolving.score +
-          sc.closing.score +
-          sc.professionalism.score) /
-          8
-      )
-      
-      feedback = `Detailed QA Scorecard completed by Gemini. Overall Audit Score: ${score}%. Identified mistakes and suggested improvements registered.`
-
-      checklist = {
-        greeting: sc.greeting,
-        verification: sc.verification,
-        compliance: sc.compliance,
-        empathy: sc.empathy,
-        listening: sc.listening,
-        problemSolving: sc.problemSolving,
-        closing: sc.closing,
-        professionalism: sc.professionalism,
-        mistakes: sc.mistakes,
-        improvements: sc.improvements,
-      }
-
-      crmSummary = geminiResult.crmNotes.summary
-      crmKeyPoints = geminiResult.crmNotes.keyPoints
-      crmActionItems = geminiResult.crmNotes.actionItems
-      crmCustomerName = geminiResult.crmNotes.customerName
-      crmAgentName = geminiResult.crmNotes.agentName
-      crmCallPurpose = geminiResult.crmNotes.callPurpose
-      crmIssue = geminiResult.crmNotes.issue
-      crmResolution = geminiResult.crmNotes.resolution
-      crmFollowUp = geminiResult.crmNotes.followUp
-      crmProductsMentioned = geminiResult.crmNotes.productsMentioned
-      crmCallDuration = geminiResult.crmNotes.callDuration
-      crmImportantNotes = geminiResult.crmNotes.importantNotes
-
-      aiCoachReport = geminiResult.aiCoachReport
-
-      if (process.env.NODE_ENV !== 'production') console.info(`[Gemini] Call grading completed: ${score}%`)
-    } catch (err) {
-      console.error('Gemini audio analysis pipeline failed:', err)
-      if (!isBypass) {
-        return { error: `Gemini audio analysis failed: ${(err as Error).message || String(err)}. Please ensure your audio file is valid, public, and the API key quota has not expired.` }
-      }
-    }
-  } else {
-    if (process.env.NODE_ENV !== 'production') console.info('[Gemini] No GEMINI_API_KEY — using mock call grading sandbox.')
-  }
-
-  // 2. Perform Database Transaction to save results
+  // 1. Queue Gemini background processing job
   try {
     const call = await prisma.$transaction(async (tx) => {
-      // 1. Create Call record
+      // Create Call record in PENDING state
       const newCall = await tx.call.create({
         data: {
           title: input.title,
@@ -298,7 +229,7 @@ export async function createCallAction(input: CreateCallInput) {
           fileUrl: input.fileUrl,
           fileSize: input.fileSize,
           duration: input.duration,
-          status: 'COMPLETED',
+          status: 'PENDING',
           customerName: input.customerName || 'Unknown Customer',
           customerId: input.customerId || 'CUST-0000',
           organizationId: organizationId,
@@ -306,59 +237,57 @@ export async function createCallAction(input: CreateCallInput) {
         },
       })
 
-      // 2. Save Analysis
-      await tx.callAnalysis.create({
+      // Increment usage counters & save usage logs
+      await tx.organization.update({
+        where: { id: organizationId },
         data: {
-          callId: newCall.id,
-          summary,
-          sentimentOverall,
-          sentimentScore,
-          transcript,
-          coachingTips,
-          strengths,
-          improvements,
-          aiCoachReport,
+          usedCalls: { increment: 1 },
+          storageUsedBytes: { increment: input.fileSize },
+          aiRequestsUsed: { increment: 1 },
+          reportsUsed: { increment: 1 },
         },
       })
 
-      // 3. Save QA scorecard
-      await tx.qAReport.create({
-        data: {
-          callId: newCall.id,
-          reviewerId: user.id,
-          score,
-          checklist,
-          feedback,
-        },
-      })
-
-      // 4. Save CRM Notes
-      await tx.cRMNote.create({
-        data: {
-          callId: newCall.id,
-          summary: crmSummary,
-          keyPoints: crmKeyPoints,
-          actionItems: crmActionItems,
-          customerName: crmCustomerName,
-          agentName: crmAgentName,
-          callPurpose: crmCallPurpose,
-          issue: crmIssue,
-          resolution: crmResolution,
-          followUp: crmFollowUp,
-          productsMentioned: crmProductsMentioned,
-          callDuration: crmCallDuration,
-          importantNotes: crmImportantNotes,
-        },
+      await tx.usageLog.createMany({
+        data: [
+          {
+            organizationId,
+            type: 'CALL',
+            amount: 1,
+            description: 'Call uploaded and queued',
+          },
+          {
+            organizationId,
+            type: 'STORAGE',
+            amount: input.fileSize,
+            description: `Storage reserved by ${(input.fileSize / 1024 / 1024).toFixed(2)} MB`,
+          },
+          {
+            organizationId,
+            type: 'AI_REQUEST',
+            amount: 1,
+            description: 'Gemini AI analysis queued',
+          },
+          {
+            organizationId,
+            type: 'REPORT',
+            amount: 1,
+            description: 'QA report queued',
+          },
+        ],
       })
 
       return newCall
     })
 
+    // Enqueue the background processing task (starts processing asynchronously)
+    await enqueueJob(call.id)
+
     revalidatePath('/dashboard/overview')
     revalidatePath('/dashboard/calls')
     return { success: true, callId: call.id }
   } catch (err) {
-    console.error('Failed to create call record in transaction:', err)
+    console.error('Failed to queue call record in transaction:', err)
     return { error: (err as Error).message || 'Database transaction error' }
   }
 }
