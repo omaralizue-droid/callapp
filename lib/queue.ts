@@ -335,6 +335,8 @@ export async function processJob(callId: string) {
         importantNotes: geminiResult.crmNotes.importantNotes,
       },
     })
+  }, {
+    timeout: 30000 // 30 seconds to absorb latencies on remote database/pooler connections
   })
 
   // 4. Send Notifications

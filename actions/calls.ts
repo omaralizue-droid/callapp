@@ -280,6 +280,8 @@ export async function createCallAction(input: CreateCallInput) {
       })
 
       return newCall
+    }, {
+      timeout: 30000 // 30 seconds to absorb latencies on remote database/pooler connections
     })
 
     // Enqueue the background processing task (starts processing asynchronously)
